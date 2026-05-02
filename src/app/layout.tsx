@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { BottomNav } from "@/components/layout/bottom-nav";
 
 export const metadata: Metadata = {
   title: "우리의 결혼",
@@ -25,7 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <body>
         <div className="mx-auto max-w-[480px] min-h-dvh bg-white relative">
-          {children}
+          <main className="pb-[72px]">
+            {children}
+          </main>
+          <BottomNav />
         </div>
       </body>
     </html>
