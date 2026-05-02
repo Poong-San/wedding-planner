@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import {
   HomeIcon, CalendarIcon, ClipboardIcon,
-  WalletIcon, CheckIcon, UsersIcon,
+  WalletIcon, CheckIcon,
 } from "@/components/ui/icons";
 
 const NAV_ITEMS = [
@@ -12,7 +12,6 @@ const NAV_ITEMS = [
   { id: "reservations", path: "/reservations", label: "예약현황", Icon: ClipboardIcon },
   { id: "budget", path: "/budget", label: "예산", Icon: WalletIcon },
   { id: "checklist", path: "/checklist", label: "체크리스트", Icon: CheckIcon },
-  { id: "guests", path: "/guests", label: "하객", Icon: UsersIcon },
 ];
 
 export function BottomNav() {
@@ -20,7 +19,7 @@ export function BottomNav() {
   const router = useRouter();
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] h-[72px] bg-white border-t border-ink-200 grid grid-cols-6 items-center pb-1 z-50">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] h-[72px] bg-white border-t border-ink-200 grid grid-cols-5 items-center pb-1 z-50">
       {NAV_ITEMS.map((item) => {
         const isActive = item.path === "/"
           ? pathname === "/"
