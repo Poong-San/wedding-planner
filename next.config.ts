@@ -5,7 +5,7 @@ const withPWA = require("next-pwa")({
   dest: "public",
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === "development",
+  disable: true, // PWA는 Supabase 연결 후 활성화
 });
 
 const nextConfig: NextConfig = {
