@@ -1,20 +1,24 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useState } from "react";
 import { CategoryHero } from "@/components/category/category-hero";
 import { ProgressStepper } from "@/components/category/progress-stepper";
 import { InfoCards } from "@/components/category/info-cards";
 import { PaymentTimeline } from "@/components/category/payment-timeline";
 import { CategoryInfo } from "@/components/category/category-info";
+import { FieldList } from "@/components/category/field-list";
+import { FieldSelectorModal } from "@/components/category/field-selector-modal";
+import { FieldInputModal } from "@/components/category/field-input-modal";
 import { PhoneIcon, PinIcon, PlusIcon } from "@/components/ui/icons";
 import { GuestStats } from "@/components/guests/guest-stats";
 import { SideSummary } from "@/components/guests/side-summary";
 import { GuestTabs } from "@/components/guests/guest-tabs";
 import { GuestList } from "@/components/guests/guest-list";
 import { GuestModal } from "@/components/modals/guest-modal";
-import { STATUS_LABELS, getStatusChipClass, CATEGORY_LABELS } from "@/lib/constants";
-import { MOCK_CATEGORIES, MOCK_EVENTS, MOCK_GUESTS } from "@/lib/mock-data";
-import type { CategoryType } from "@/types";
+import { useCategories } from "@/hooks/use-categories";
+import { STATUS_LABELS, getStatusChipClass } from "@/lib/constants";
+import { MOCK_EVENTS, MOCK_GUESTS } from "@/lib/mock-data";
+import type { CategoryType, CategoryField, FieldDefinition, FieldType } from "@/types";
 
 function GuestsView() {
   const [tab, setTab] = React.useState("all");
@@ -71,12 +75,18 @@ function GuestsView() {
 
 export default function CategoryPage({ params }: { params: Promise<{ type: string }> }) {
   const { type } = use(params);
+  const { categories, fields, addField, updateField, deleteField } = useCategories();
+
+  const [showFieldSelector, setShowFieldSelector] = useState(false);
+  const [selectedFieldDef, setSelectedFieldDef] = useState<FieldDefinition | null>(null);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [editingField, setEditingField] = useState<CategoryField | null>(null);
 
   if (type === "guests") {
     return <GuestsView />;
   }
 
-  const cat = MOCK_CATEGORIES[type as CategoryType];
+  const cat = categories[type as CategoryType];
 
   if (!cat) {
     return (
@@ -89,6 +99,9 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
   const relatedEvents = MOCK_EVENTS
     .filter((e) => e.cat === type)
     .sort((a, b) => a.date.localeCompare(b.date));
+
+  const categoryFields = fields[type] || [];
+  const existingKeys = categoryFields.map((f) => f.fieldKey);
 
   return (
     <>
@@ -126,6 +139,23 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
         <PaymentTimeline payments={cat.payments} />
         <CategoryInfo category={cat} />
 
+        {/* 유연한 필드 목록 */}
+        <FieldList
+          fields={categoryFields}
+          onFieldClick={(f) => setEditingField(f)}
+          onDelete={(id) => deleteField(type, id)}
+        />
+
+        {/* + 항목 추가 버튼 */}
+        <div className="px-5 pb-4">
+          <button
+            onClick={() => setShowFieldSelector(true)}
+            className="w-full py-3 border border-dashed border-ink-300 rounded-xl text-[13px] text-ink-500 font-medium cursor-pointer bg-white font-sans"
+          >
+            + 항목 추가
+          </button>
+        </div>
+
         {relatedEvents.length > 0 && (
           <div className="px-5 pb-4">
             <div className="text-[11px] text-ink-500 uppercase tracking-wider font-medium mb-2.5">
@@ -144,6 +174,54 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
           </div>
         )}
       </div>
+
+      {showFieldSelector && (
+        <FieldSelectorModal
+          categoryType={type as CategoryType}
+          existingKeys={existingKeys}
+          onSelect={(def) => {
+            setShowFieldSelector(false);
+            setSelectedFieldDef(def);
+          }}
+          onCustom={() => {
+            setShowFieldSelector(false);
+            setShowCustomInput(true);
+          }}
+          onClose={() => setShowFieldSelector(false)}
+        />
+      )}
+
+      {selectedFieldDef && (
+        <FieldInputModal
+          definition={selectedFieldDef}
+          onSave={(data) => addField(type, data)}
+          onClose={() => setSelectedFieldDef(null)}
+        />
+      )}
+
+      {showCustomInput && (
+        <FieldInputModal
+          onSave={(data) => addField(type, data)}
+          onClose={() => setShowCustomInput(false)}
+        />
+      )}
+
+      {editingField && (
+        <FieldInputModal
+          definition={{
+            key: editingField.fieldKey,
+            label: editingField.fieldLabel,
+            type: editingField.fieldType as FieldType,
+            options: editingField.fieldOptions ? editingField.fieldOptions.split(",") : undefined,
+          }}
+          initialValue={editingField.fieldValue}
+          onSave={(data) => {
+            deleteField(type, editingField.id);
+            addField(type, data);
+          }}
+          onClose={() => setEditingField(null)}
+        />
+      )}
     </>
   );
 }
