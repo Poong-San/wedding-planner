@@ -1,7 +1,7 @@
 // 카테고리 타입 키
 export type CategoryType =
   | "wedding_hall" | "sdm" | "home_goods" | "ceremony"
-  | "honeymoon" | "jewelry" | "yedan" | "invitation" | "newhome";
+  | "honeymoon" | "jewelry" | "yedan" | "invitation" | "newhome" | "guests";
 
 // 진행 상태 (5단계)
 export type CategoryStatus = "pending" | "consulting" | "contracted" | "in_progress" | "completed";
@@ -75,4 +75,28 @@ export interface CoupleInfo {
 // 예산
 export interface Budget {
   total: number;
+}
+
+// 필드 타입
+export type FieldType = "text" | "number" | "date" | "select" | "textarea" | "boolean";
+
+// 카테고리 필드 (DB에 저장되는 데이터)
+export interface CategoryField {
+  id: string;
+  categoryId: string;
+  fieldKey: string;
+  fieldLabel: string;
+  fieldValue: string;
+  fieldType: FieldType;
+  fieldOptions: string;
+  isCustom: boolean;
+  sortOrder: number;
+}
+
+// 추천 필드 정의 (프론트엔드 상수)
+export interface FieldDefinition {
+  key: string;
+  label: string;
+  type: FieldType;
+  options?: string[];
 }

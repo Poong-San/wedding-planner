@@ -10,6 +10,7 @@ export const CATEGORY_LABELS: Record<CategoryType, string> = {
   yedan: "예단",
   invitation: "청첩장",
   newhome: "신혼집",
+  guests: "하객",
 };
 
 export const CATEGORY_LIST: { type: CategoryType; name: string }[] = [
@@ -22,6 +23,7 @@ export const CATEGORY_LIST: { type: CategoryType; name: string }[] = [
   { type: "yedan", name: "예단" },
   { type: "invitation", name: "청첩장" },
   { type: "newhome", name: "신혼집" },
+  { type: "guests", name: "하객" },
 ];
 
 export const STATUS_LABELS: Record<CategoryStatus, string> = {

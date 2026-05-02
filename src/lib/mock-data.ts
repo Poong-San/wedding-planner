@@ -60,6 +60,7 @@ export const MOCK_CATEGORIES: Record<CategoryType, Category> = {
     manager: "-", contact: "-", address: "송파구 잠실",
     total: 0, payments: [], status: "completed", notes: "전세 계약 완료",
   },
+  guests: { type: "guests", name: "하객", vendor: "", status: "pending", total: 0, payments: [], notes: "" },
 };
 
 export const MOCK_EVENTS: CalendarEvent[] = [
