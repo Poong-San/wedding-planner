@@ -7,7 +7,7 @@ import type { CalendarEvent } from "@/types";
 interface EventDetailModalProps {
   event: CalendarEvent;
   onClose: () => void;
-  onDelete?: (id: number) => void;
+  onDelete?: (id: number | string) => void;
 }
 
 export function EventDetailModal({ event, onClose, onDelete }: EventDetailModalProps) {

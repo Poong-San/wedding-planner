@@ -4,7 +4,7 @@ import type { CalendarEvent } from "@/types";
 interface EventListProps {
   date: string;
   events: CalendarEvent[];
-  onEventClick?: (eventId: number) => void;
+  onEventClick?: (eventId: number | string) => void;
 }
 
 export function EventList({ date, events, onEventClick }: EventListProps) {

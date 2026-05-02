@@ -3,12 +3,12 @@
 import { PlusIcon } from "@/components/ui/icons";
 import { ChecklistProgressCard } from "@/components/checklist/progress-card";
 import { TimelineGroup } from "@/components/checklist/timeline-group";
-import { MOCK_CHECKLIST } from "@/lib/mock-data";
+import { useChecklist } from "@/hooks/use-checklist";
 
 const TIMELINE_ORDER = ["6개월 전", "3개월 전", "1개월 전", "1주 전"];
 
 export default function ChecklistPage() {
-  const checklist = MOCK_CHECKLIST;
+  const { checklist, toggleItem } = useChecklist();
   const total = checklist.length;
   const done = checklist.filter((c) => c.done).length;
 
@@ -31,7 +31,7 @@ export default function ChecklistPage() {
 
       <div className="px-5">
         {TIMELINE_ORDER.filter((t) => groups[t]).map((t) => (
-          <TimelineGroup key={t} timeline={t} items={groups[t]} />
+          <TimelineGroup key={t} timeline={t} items={groups[t]} onToggle={toggleItem} />
         ))}
       </div>
     </>

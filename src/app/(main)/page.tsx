@@ -6,16 +6,22 @@ import { HeroSection } from "@/components/home/hero-section";
 import { BudgetSummary } from "@/components/home/budget-summary";
 import { UpcomingEvents } from "@/components/home/upcoming-events";
 import { CategoryGrid } from "@/components/home/category-grid";
-import { MOCK_COUPLE, MOCK_CATEGORIES, MOCK_EVENTS, MOCK_BUDGET } from "@/lib/mock-data";
+import { useCouple } from "@/hooks/use-couple";
+import { useCategories } from "@/hooks/use-categories";
+import { useEvents } from "@/hooks/use-events";
+import { useBudget } from "@/hooks/use-budget";
 import { getCategorySpent } from "@/lib/utils";
 
 export default function HomePage() {
-  const couple = MOCK_COUPLE;
-  const categories = Object.values(MOCK_CATEGORIES);
-  const budget = MOCK_BUDGET;
-  const used = categories.reduce((s, c) => s + getCategorySpent(c), 0);
+  const { couple, updateMessage } = useCouple();
+  const { categories } = useCategories();
+  const { events } = useEvents();
+  const { budget } = useBudget();
 
-  const upcoming = MOCK_EVENTS
+  const cats = Object.values(categories);
+  const used = cats.reduce((s, c) => s + getCategorySpent(c), 0);
+
+  const upcoming = events
     .filter((e) => new Date(e.date) >= new Date())
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 3);
@@ -39,10 +45,10 @@ export default function HomePage() {
 
       <CategoryTabs />
 
-      <HeroSection couple={couple} />
+      <HeroSection couple={couple} onUpdateMessage={updateMessage} />
       <BudgetSummary total={budget.total} used={used} />
       <UpcomingEvents events={upcoming} />
-      <CategoryGrid categories={categories} />
+      <CategoryGrid categories={cats} />
     </>
   );
 }

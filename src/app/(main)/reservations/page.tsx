@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FilterIcon, CheckIcon } from "@/components/ui/icons";
 import { ProgressBar } from "@/components/ui/progress-bar";
-import { MOCK_CATEGORIES } from "@/lib/mock-data";
+import { useCategories } from "@/hooks/use-categories";
 
 export default function ReservationsPage() {
   const router = useRouter();
+  const { categories } = useCategories();
   const [filter, setFilter] = useState("all");
-  const cats = Object.values(MOCK_CATEGORIES);
+  const cats = Object.values(categories);
 
   const filtered = cats.filter((c) => {
     if (filter === "all") return true;
@@ -38,7 +39,7 @@ export default function ReservationsPage() {
             <span className="text-[13px] font-semibold">전체 진행률</span>
             <span className="text-[13px] font-bold text-green-700">{completedCount} / {cats.length}</span>
           </div>
-          <ProgressBar percent={(completedCount / cats.length) * 100} />
+          <ProgressBar percent={cats.length > 0 ? (completedCount / cats.length) * 100 : 0} />
         </div>
       </div>
 

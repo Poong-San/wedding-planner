@@ -38,7 +38,7 @@ export interface Category {
 
 // 일정
 export interface CalendarEvent {
-  id: number;
+  id: number | string;
   date: string;       // YYYY-MM-DD
   time: string | null;
   title: string;
@@ -47,7 +47,7 @@ export interface CalendarEvent {
 
 // 체크리스트 항목
 export interface ChecklistItem {
-  id: number;
+  id: number | string;
   timeline: string;   // "6개월 전", "3개월 전", "1개월 전", "1주 전"
   title: string;
   done: boolean;
@@ -55,7 +55,7 @@ export interface ChecklistItem {
 
 // 하객
 export interface Guest {
-  id: number;
+  id: number | string;
   name: string;
   side: GuestSide;
   rel: string;         // 관계: 가족, 친구, 직장, 지인

@@ -6,7 +6,7 @@ import type { ChecklistItem } from "@/types";
 interface TimelineGroupProps {
   timeline: string;
   items: ChecklistItem[];
-  onToggle?: (id: number) => void;
+  onToggle?: (id: number | string) => void;
 }
 
 export function TimelineGroup({ timeline, items, onToggle }: TimelineGroupProps) {

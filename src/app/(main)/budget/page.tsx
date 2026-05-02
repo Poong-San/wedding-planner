@@ -4,13 +4,17 @@ import { PlusIcon } from "@/components/ui/icons";
 import { DonutChart } from "@/components/budget/donut-chart";
 import { CategoryBars } from "@/components/budget/category-bars";
 import { getCategorySpent, formatManWon } from "@/lib/utils";
-import { MOCK_CATEGORIES, MOCK_BUDGET } from "@/lib/mock-data";
+import { useCategories } from "@/hooks/use-categories";
+import { useBudget } from "@/hooks/use-budget";
 
 export default function BudgetPage() {
-  const total = MOCK_BUDGET.total;
-  const cats = Object.values(MOCK_CATEGORIES);
+  const { budget } = useBudget();
+  const { categories } = useCategories();
+
+  const total = budget.total;
+  const cats = Object.values(categories);
   const used = cats.reduce((s, c) => s + getCategorySpent(c), 0);
-  const pct = (used / total) * 100;
+  const pct = total > 0 ? (used / total) * 100 : 0;
 
   return (
     <>

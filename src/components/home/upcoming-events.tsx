@@ -7,7 +7,7 @@ import type { CalendarEvent } from "@/types";
 
 interface UpcomingEventsProps {
   events: CalendarEvent[];
-  onEventClick?: (eventId: number) => void;
+  onEventClick?: (eventId: number | string) => void;
 }
 
 export function UpcomingEvents({ events, onEventClick }: UpcomingEventsProps) {

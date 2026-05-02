@@ -23,7 +23,7 @@ import type { CategoryType, CategoryField, FieldDefinition, FieldType } from "@/
 function GuestsView() {
   const [tab, setTab] = React.useState("all");
   const [showModal, setShowModal] = React.useState(false);
-  const [selectedId, setSelectedId] = React.useState<number | null>(null);
+  const [selectedId, setSelectedId] = React.useState<number | string | null>(null);
 
   const guests = MOCK_GUESTS;
   const filtered = guests.filter((g) => tab === "all" || g.side === tab);

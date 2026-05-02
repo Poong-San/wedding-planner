@@ -4,6 +4,45 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+async function seedInitialData(supabase: any, userId: string) {
+  const categoryTypes = [
+    { type: "wedding_hall", name: "웨딩홀" },
+    { type: "sdm", name: "스드메" },
+    { type: "home_goods", name: "혼수" },
+    { type: "ceremony", name: "본식" },
+    { type: "honeymoon", name: "허니문" },
+    { type: "jewelry", name: "예물" },
+    { type: "yedan", name: "예단" },
+    { type: "invitation", name: "청첩장" },
+    { type: "newhome", name: "신혼집" },
+  ];
+
+  await supabase.from("categories").insert(
+    categoryTypes.map((c) => ({ user_id: userId, type: c.type, name: c.name, status: "pending" }))
+  );
+
+  await supabase.from("budgets").insert({ user_id: userId, total_budget: 0 });
+
+  const defaultChecklist = [
+    { timeline: "6개월 전", title: "웨딩홀 예약", sort_order: 1 },
+    { timeline: "6개월 전", title: "스드메 상담", sort_order: 2 },
+    { timeline: "6개월 전", title: "예산 계획 수립", sort_order: 3 },
+    { timeline: "3개월 전", title: "청첩장 주문", sort_order: 4 },
+    { timeline: "3개월 전", title: "허니문 예약", sort_order: 5 },
+    { timeline: "3개월 전", title: "혼수 구매 시작", sort_order: 6 },
+    { timeline: "3개월 전", title: "예단 준비", sort_order: 7 },
+    { timeline: "1개월 전", title: "청첩장 발송", sort_order: 8 },
+    { timeline: "1개월 전", title: "드레스 최종 피팅", sort_order: 9 },
+    { timeline: "1개월 전", title: "식순 확정", sort_order: 10 },
+    { timeline: "1주 전", title: "최종 인원 확인", sort_order: 11 },
+    { timeline: "1주 전", title: "축의금 봉투 준비", sort_order: 12 },
+  ];
+
+  await supabase.from("checklist_items").insert(
+    defaultChecklist.map((c) => ({ user_id: userId, ...c }))
+  );
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -28,6 +67,7 @@ export default function SignupPage() {
         email,
         name,
       });
+      await seedInitialData(supabase, data.user.id);
     }
     router.push("/");
     router.refresh();

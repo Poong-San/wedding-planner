@@ -9,7 +9,7 @@ interface GuestModalProps {
   guest?: Guest;
   onClose: () => void;
   onSave?: (data: Omit<Guest, "id">) => void;
-  onDelete?: (id: number) => void;
+  onDelete?: (id: number | string) => void;
 }
 
 export function GuestModal({ guest, onClose, onSave, onDelete }: GuestModalProps) {

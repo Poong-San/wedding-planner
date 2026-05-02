@@ -3,7 +3,7 @@ import type { Guest } from "@/types";
 
 interface GuestListProps {
   guests: Guest[];
-  onGuestClick?: (id: number) => void;
+  onGuestClick?: (id: number | string) => void;
 }
 
 export function GuestList({ guests, onGuestClick }: GuestListProps) {
