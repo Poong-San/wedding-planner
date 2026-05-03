@@ -13,7 +13,7 @@ import { useBudget } from "@/hooks/use-budget";
 import { getCategorySpent } from "@/lib/utils";
 
 export default function HomePage() {
-  const { couple, updateMessage } = useCouple();
+  const { couple, updateCouple, updateMessage } = useCouple();
   const { categories } = useCategories();
   const { events } = useEvents();
   const { budget } = useBudget();
@@ -45,7 +45,7 @@ export default function HomePage() {
 
       <CategoryTabs />
 
-      <HeroSection couple={couple} onUpdateMessage={updateMessage} />
+      <HeroSection couple={couple} onUpdateCouple={updateCouple} onUpdateMessage={updateMessage} />
       <BudgetSummary total={budget.total} used={used} />
       <UpcomingEvents events={upcoming} />
       <CategoryGrid categories={cats} />

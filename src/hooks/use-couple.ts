@@ -15,12 +15,12 @@ export function useCouple() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setLoading(false); return; }
         const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-        if (data && data.bride_name) {
+        if (data) {
           setCouple({
-            bride: data.bride_name || "",
-            groom: data.groom_name || "",
-            weddingDate: data.wedding_date || "2026-06-14",
-            message: data.couple_message || "",
+            bride: data.bride_name || MOCK_COUPLE.bride,
+            groom: data.groom_name || MOCK_COUPLE.groom,
+            weddingDate: data.wedding_date || MOCK_COUPLE.weddingDate,
+            message: data.couple_message || MOCK_COUPLE.message,
           });
         }
       } catch { /* fallback to mock */ }
@@ -29,16 +29,24 @@ export function useCouple() {
     load();
   }, []);
 
-  const updateMessage = async (message: string) => {
-    setCouple((prev) => ({ ...prev, message }));
+  const updateCouple = async (updates: Partial<CoupleInfo>) => {
+    setCouple((prev) => ({ ...prev, ...updates }));
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from("profiles").update({ couple_message: message }).eq("id", user.id);
+        const dbUpdates: Record<string, string> = {};
+        if (updates.bride !== undefined) dbUpdates.bride_name = updates.bride;
+        if (updates.groom !== undefined) dbUpdates.groom_name = updates.groom;
+        if (updates.weddingDate !== undefined) dbUpdates.wedding_date = updates.weddingDate;
+        if (updates.message !== undefined) dbUpdates.couple_message = updates.message;
+        await supabase.from("profiles").update(dbUpdates).eq("id", user.id);
       }
     } catch { /* ignore */ }
   };
 
-  return { couple, loading, updateMessage };
+  // Keep backward compat
+  const updateMessage = (message: string) => updateCouple({ message });
+
+  return { couple, loading, updateCouple, updateMessage };
 }
