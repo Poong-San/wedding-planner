@@ -1,11 +1,10 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { MOCK_EVENTS } from "@/lib/mock-data";
 import type { CalendarEvent, CategoryType } from "@/types";
 
 export function useEvents() {
-  const [events, setEvents] = useState<CalendarEvent[]>(MOCK_EVENTS);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,8 +13,9 @@ export function useEvents() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setLoading(false); return; }
-        const { data } = await supabase.from("events").select("*").eq("user_id", user.id).order("date");
-        if (data && data.length > 0) {
+        const { data, error } = await supabase.from("events").select("*").eq("user_id", user.id).order("date");
+        if (error) console.error("useEvents load error:", error);
+        if (data) {
           setEvents(data.map((e: any) => ({
             id: e.id,
             date: e.date,
@@ -24,7 +24,7 @@ export function useEvents() {
             cat: e.category_type as CategoryType,
           })));
         }
-      } catch { /* fallback to mock */ }
+      } catch (e) { console.error("useEvents exception:", e); }
       setLoading(false);
     }
     load();
@@ -33,31 +33,32 @@ export function useEvents() {
   const addEvent = useCallback(async (event: Omit<CalendarEvent, "id">) => {
     const tempId = Date.now();
     setEvents((prev) => [...prev, { ...event, id: tempId }]);
-
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data } = await supabase.from("events").insert({
+        const { data, error } = await supabase.from("events").insert({
           user_id: user.id,
           title: event.title,
           date: event.date,
           time: event.time,
           category_type: event.cat,
         }).select().single();
+        if (error) console.error("addEvent error:", error);
         if (data) {
           setEvents((prev) => prev.map((e) => e.id === tempId ? { ...e, id: data.id } : e));
         }
       }
-    } catch { /* local state already updated */ }
+    } catch (e) { console.error("addEvent exception:", e); }
   }, []);
 
   const deleteEvent = useCallback(async (id: number | string) => {
     setEvents((prev) => prev.filter((e) => e.id !== id));
     try {
       const supabase = createClient();
-      await supabase.from("events").delete().eq("id", id);
-    } catch { /* ignore */ }
+      const { error } = await supabase.from("events").delete().eq("id", id);
+      if (error) console.error("deleteEvent error:", error);
+    } catch (e) { console.error("deleteEvent exception:", e); }
   }, []);
 
   return { events, loading, addEvent, deleteEvent };

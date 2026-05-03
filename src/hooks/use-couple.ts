@@ -1,11 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { MOCK_COUPLE } from "@/lib/mock-data";
 import type { CoupleInfo } from "@/types";
 
+const EMPTY_COUPLE: CoupleInfo = {
+  bride: "",
+  groom: "",
+  weddingDate: "",
+  message: "",
+};
+
 export function useCouple() {
-  const [couple, setCouple] = useState<CoupleInfo>(MOCK_COUPLE);
+  const [couple, setCouple] = useState<CoupleInfo>(EMPTY_COUPLE);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,13 +23,15 @@ export function useCouple() {
         const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
         if (data) {
           setCouple({
-            bride: data.bride_name || MOCK_COUPLE.bride,
-            groom: data.groom_name || MOCK_COUPLE.groom,
-            weddingDate: data.wedding_date || MOCK_COUPLE.weddingDate,
-            message: data.couple_message || MOCK_COUPLE.message,
+            bride: data.bride_name || "",
+            groom: data.groom_name || "",
+            weddingDate: data.wedding_date || "",
+            message: data.couple_message || "",
           });
         }
-      } catch { /* fallback to mock */ }
+      } catch (e) {
+        console.error("useCouple load error:", e);
+      }
       setLoading(false);
     }
     load();
@@ -40,12 +48,14 @@ export function useCouple() {
         if (updates.groom !== undefined) dbUpdates.groom_name = updates.groom;
         if (updates.weddingDate !== undefined) dbUpdates.wedding_date = updates.weddingDate;
         if (updates.message !== undefined) dbUpdates.couple_message = updates.message;
-        await supabase.from("profiles").update(dbUpdates).eq("id", user.id);
+        const { error } = await supabase.from("profiles").update(dbUpdates).eq("id", user.id);
+        if (error) console.error("updateCouple error:", error);
       }
-    } catch { /* ignore */ }
+    } catch (e) {
+      console.error("updateCouple exception:", e);
+    }
   };
 
-  // Keep backward compat
   const updateMessage = (message: string) => updateCouple({ message });
 
   return { couple, loading, updateCouple, updateMessage };

@@ -1,11 +1,10 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { MOCK_CATEGORIES } from "@/lib/mock-data";
 import type { Category, CategoryField, CategoryStatus, FieldType } from "@/types";
 
 export function useCategories() {
-  const [categories, setCategories] = useState<Record<string, Category>>(MOCK_CATEGORIES);
+  const [categories, setCategories] = useState<Record<string, Category>>({});
   const [fields, setFields] = useState<Record<string, CategoryField[]>>({});
   const [categoryDbIds, setCategoryDbIds] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -17,17 +16,28 @@ export function useCategories() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setLoading(false); return; }
 
-        const { data: cats } = await supabase
+        const { data: cats, error } = await supabase
           .from("categories")
-          .select("*, category_fields(*)")
+          .select("*, category_fields(*), payments(*)")
           .eq("user_id", user.id);
 
-        if (cats && cats.length > 0) {
+        if (error) console.error("useCategories load error:", error);
+
+        if (cats) {
           const catMap: Record<string, Category> = {};
           const fieldMap: Record<string, CategoryField[]> = {};
           const idMap: Record<string, string> = {};
 
           cats.forEach((c: any) => {
+            const payments = (c.payments || [])
+              .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
+              .map((p: any) => ({
+                label: p.label,
+                amount: p.amount,
+                date: p.date || "",
+                done: p.done || false,
+              }));
+
             catMap[c.type] = {
               type: c.type,
               name: c.name,
@@ -36,31 +46,35 @@ export function useCategories() {
               contact: c.contact || "",
               address: c.address || "",
               total: c.total || 0,
-              payments: [],
+              payments,
               eventDate: c.event_date || undefined,
               eventTime: c.event_time || undefined,
               status: c.status,
               notes: c.notes || "",
             };
             idMap[c.type] = c.id;
-            fieldMap[c.type] = (c.category_fields || []).map((f: any) => ({
-              id: f.id,
-              categoryId: f.category_id,
-              fieldKey: f.field_key,
-              fieldLabel: f.field_label,
-              fieldValue: f.field_value || "",
-              fieldType: f.field_type || "text",
-              fieldOptions: f.field_options || "",
-              isCustom: f.is_custom || false,
-              sortOrder: f.sort_order || 0,
-            })).sort((a: CategoryField, b: CategoryField) => a.sortOrder - b.sortOrder);
+            fieldMap[c.type] = (c.category_fields || [])
+              .map((f: any) => ({
+                id: f.id,
+                categoryId: f.category_id,
+                fieldKey: f.field_key,
+                fieldLabel: f.field_label,
+                fieldValue: f.field_value || "",
+                fieldType: f.field_type || "text",
+                fieldOptions: f.field_options || "",
+                isCustom: f.is_custom || false,
+                sortOrder: f.sort_order || 0,
+              }))
+              .sort((a: CategoryField, b: CategoryField) => a.sortOrder - b.sortOrder);
           });
 
-          setCategories(catMap as Record<string, Category>);
+          setCategories(catMap);
           setFields(fieldMap);
           setCategoryDbIds(idMap);
         }
-      } catch { /* fallback to mock */ }
+      } catch (e) {
+        console.error("useCategories exception:", e);
+      }
       setLoading(false);
     }
     load();
@@ -91,7 +105,7 @@ export function useCategories() {
     if (dbId) {
       try {
         const supabase = createClient();
-        const { data: inserted } = await supabase.from("category_fields").insert({
+        const { data: inserted, error } = await supabase.from("category_fields").insert({
           category_id: dbId,
           field_key: data.key,
           field_label: data.label,
@@ -102,6 +116,7 @@ export function useCategories() {
           sort_order: newField.sortOrder,
         }).select().single();
 
+        if (error) console.error("addField error:", error);
         if (inserted) {
           setFields((prev) => ({
             ...prev,
@@ -110,7 +125,7 @@ export function useCategories() {
             ),
           }));
         }
-      } catch { /* local state already updated */ }
+      } catch (e) { console.error("addField exception:", e); }
     }
   }, [categoryDbIds, fields]);
 
@@ -121,11 +136,11 @@ export function useCategories() {
         f.id === fieldId ? { ...f, fieldValue: value } : f
       ),
     }));
-
     try {
       const supabase = createClient();
-      await supabase.from("category_fields").update({ field_value: value }).eq("id", fieldId);
-    } catch { /* ignore */ }
+      const { error } = await supabase.from("category_fields").update({ field_value: value }).eq("id", fieldId);
+      if (error) console.error("updateField error:", error);
+    } catch (e) { console.error("updateField exception:", e); }
   }, []);
 
   const deleteField = useCallback(async (categoryType: string, fieldId: string) => {
@@ -133,34 +148,24 @@ export function useCategories() {
       ...prev,
       [categoryType]: (prev[categoryType] || []).filter((f) => f.id !== fieldId),
     }));
-
     try {
       const supabase = createClient();
-      await supabase.from("category_fields").delete().eq("id", fieldId);
-    } catch { /* ignore */ }
+      const { error } = await supabase.from("category_fields").delete().eq("id", fieldId);
+      if (error) console.error("deleteField error:", error);
+    } catch (e) { console.error("deleteField exception:", e); }
   }, []);
 
   const updateCategory = useCallback(async (
     categoryType: string,
     updates: Partial<{
-      vendor: string;
-      manager: string;
-      contact: string;
-      address: string;
-      status: CategoryStatus;
-      notes: string;
-      eventDate: string;
-      eventTime: string;
-      total: number;
+      vendor: string; manager: string; contact: string; address: string;
+      status: CategoryStatus; notes: string; eventDate: string; eventTime: string; total: number;
     }>
   ) => {
-    // Update local state immediately
     setCategories((prev) => ({
       ...prev,
       [categoryType]: { ...prev[categoryType], ...updates },
     }));
-
-    // Save to Supabase
     const dbId = categoryDbIds[categoryType];
     if (dbId) {
       try {
@@ -175,8 +180,9 @@ export function useCategories() {
         if (updates.eventDate !== undefined) dbUpdates.event_date = updates.eventDate;
         if (updates.eventTime !== undefined) dbUpdates.event_time = updates.eventTime;
         if (updates.total !== undefined) dbUpdates.total = updates.total;
-        await supabase.from("categories").update(dbUpdates).eq("id", dbId);
-      } catch { /* ignore */ }
+        const { error } = await supabase.from("categories").update(dbUpdates).eq("id", dbId);
+        if (error) console.error("updateCategory error:", error);
+      } catch (e) { console.error("updateCategory exception:", e); }
     }
   }, [categoryDbIds]);
 
@@ -196,7 +202,7 @@ export function useCategories() {
     if (dbId) {
       try {
         const supabase = createClient();
-        await supabase.from("payments").insert({
+        const { error } = await supabase.from("payments").insert({
           category_id: dbId,
           label: payment.label,
           amount: payment.amount,
@@ -204,7 +210,8 @@ export function useCategories() {
           done: false,
           sort_order: newPayments.length,
         });
-      } catch { /* ignore */ }
+        if (error) console.error("addPayment error:", error);
+      } catch (e) { console.error("addPayment exception:", e); }
     }
   }, [categories, categoryDbIds]);
 
@@ -218,6 +225,8 @@ export function useCategories() {
       ...prev,
       [categoryType]: { ...prev[categoryType], payments: newPayments },
     }));
+    // Note: payment toggle DB update requires payment IDs — stored locally only for now
+    // Full implementation would need payment IDs from DB
   }, [categories]);
 
   return { categories, fields, loading, addField, updateField, deleteField, updateCategory, addPayment, togglePayment };

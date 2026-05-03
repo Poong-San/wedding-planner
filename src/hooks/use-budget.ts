@@ -1,11 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { MOCK_BUDGET } from "@/lib/mock-data";
 import type { Budget } from "@/types";
 
 export function useBudget() {
-  const [budget, setBudget] = useState<Budget>(MOCK_BUDGET);
+  const [budget, setBudget] = useState<Budget>({ total: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,11 +13,12 @@ export function useBudget() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setLoading(false); return; }
-        const { data } = await supabase.from("budgets").select("*").eq("user_id", user.id).single();
+        const { data, error } = await supabase.from("budgets").select("*").eq("user_id", user.id).single();
+        if (error && error.code !== "PGRST116") console.error("useBudget load error:", error);
         if (data) {
           setBudget({ total: data.total_budget || 0 });
         }
-      } catch { /* fallback to mock */ }
+      } catch (e) { console.error("useBudget exception:", e); }
       setLoading(false);
     }
     load();
