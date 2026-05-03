@@ -1,12 +1,19 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Category, CategoryField, CategoryStatus, FieldType } from "@/types";
+import type { Category, CategoryField, CategoryStatus, FieldType, Payment } from "@/types";
+
+// Payment with DB id for persistence
+interface PaymentWithId extends Payment {
+  dbId?: string;
+}
 
 export function useCategories() {
   const [categories, setCategories] = useState<Record<string, Category>>({});
   const [fields, setFields] = useState<Record<string, CategoryField[]>>({});
   const [categoryDbIds, setCategoryDbIds] = useState<Record<string, string>>({});
+  // Track payment DB IDs separately: { [categoryType]: string[] }
+  const [paymentDbIds, setPaymentDbIds] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,16 +34,21 @@ export function useCategories() {
           const catMap: Record<string, Category> = {};
           const fieldMap: Record<string, CategoryField[]> = {};
           const idMap: Record<string, string> = {};
+          const pIdMap: Record<string, string[]> = {};
 
           cats.forEach((c: any) => {
-            const payments = (c.payments || [])
-              .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
-              .map((p: any) => ({
-                label: p.label,
-                amount: p.amount,
-                date: p.date || "",
-                done: p.done || false,
-              }));
+            const sortedPayments = (c.payments || [])
+              .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0));
+
+            const payments: Payment[] = sortedPayments.map((p: any) => ({
+              label: p.label,
+              amount: p.amount,
+              date: p.date || "",
+              done: p.done || false,
+            }));
+
+            // Store payment DB IDs in the same order
+            pIdMap[c.type] = sortedPayments.map((p: any) => p.id);
 
             catMap[c.type] = {
               type: c.type,
@@ -71,6 +83,7 @@ export function useCategories() {
           setCategories(catMap);
           setFields(fieldMap);
           setCategoryDbIds(idMap);
+          setPaymentDbIds(pIdMap);
         }
       } catch (e) {
         console.error("useCategories exception:", e);
@@ -202,15 +215,22 @@ export function useCategories() {
     if (dbId) {
       try {
         const supabase = createClient();
-        const { error } = await supabase.from("payments").insert({
+        const { data: inserted, error } = await supabase.from("payments").insert({
           category_id: dbId,
           label: payment.label,
           amount: payment.amount,
           date: payment.date,
           done: false,
           sort_order: newPayments.length,
-        });
+        }).select().single();
         if (error) console.error("addPayment error:", error);
+        if (inserted) {
+          // Track the new payment's DB ID
+          setPaymentDbIds((prev) => ({
+            ...prev,
+            [categoryType]: [...(prev[categoryType] || []), inserted.id],
+          }));
+        }
       } catch (e) { console.error("addPayment exception:", e); }
     }
   }, [categories, categoryDbIds]);
@@ -218,16 +238,31 @@ export function useCategories() {
   const togglePayment = useCallback(async (categoryType: string, paymentIndex: number) => {
     const cat = categories[categoryType];
     if (!cat) return;
+    const payment = cat.payments[paymentIndex];
+    if (!payment) return;
+
+    const newDone = !payment.done;
     const newPayments = cat.payments.map((p, i) =>
-      i === paymentIndex ? { ...p, done: !p.done } : p
+      i === paymentIndex ? { ...p, done: newDone } : p
     );
     setCategories((prev) => ({
       ...prev,
       [categoryType]: { ...prev[categoryType], payments: newPayments },
     }));
-    // Note: payment toggle DB update requires payment IDs — stored locally only for now
-    // Full implementation would need payment IDs from DB
-  }, [categories]);
+
+    // Persist to DB using tracked payment IDs
+    const dbPaymentId = paymentDbIds[categoryType]?.[paymentIndex];
+    if (dbPaymentId) {
+      try {
+        const supabase = createClient();
+        const { error } = await supabase
+          .from("payments")
+          .update({ done: newDone })
+          .eq("id", dbPaymentId);
+        if (error) console.error("togglePayment error:", error);
+      } catch (e) { console.error("togglePayment exception:", e); }
+    }
+  }, [categories, paymentDbIds]);
 
   return { categories, fields, loading, addField, updateField, deleteField, updateCategory, addPayment, togglePayment };
 }

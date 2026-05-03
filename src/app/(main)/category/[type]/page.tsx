@@ -19,8 +19,8 @@ import { GuestList } from "@/components/guests/guest-list";
 import { GuestModal } from "@/components/modals/guest-modal";
 import { useCategories } from "@/hooks/use-categories";
 import { useGuests } from "@/hooks/use-guests";
+import { useEvents } from "@/hooks/use-events";
 import { STATUS_LABELS, getStatusChipClass } from "@/lib/constants";
-import { MOCK_EVENTS } from "@/lib/mock-data";
 import type { CategoryType, CategoryField, FieldDefinition, FieldType } from "@/types";
 
 function GuestsView() {
@@ -89,6 +89,7 @@ function GuestsView() {
 export default function CategoryPage({ params }: { params: Promise<{ type: string }> }) {
   const { type } = use(params);
   const { categories, fields, addField, updateField, deleteField, updateCategory, addPayment, togglePayment } = useCategories();
+  const { events } = useEvents();
 
   const [showFieldSelector, setShowFieldSelector] = useState(false);
   const [selectedFieldDef, setSelectedFieldDef] = useState<FieldDefinition | null>(null);
@@ -111,7 +112,7 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
     );
   }
 
-  const relatedEvents = MOCK_EVENTS
+  const relatedEvents = events
     .filter((e) => e.cat === type)
     .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -253,8 +254,7 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
           }}
           initialValue={editingField.fieldValue}
           onSave={(data) => {
-            deleteField(type, editingField.id);
-            addField(type, data);
+            updateField(type, editingField.id, data.value);
           }}
           onClose={() => setEditingField(null)}
         />
