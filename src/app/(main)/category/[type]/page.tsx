@@ -18,8 +18,9 @@ import { GuestTabs } from "@/components/guests/guest-tabs";
 import { GuestList } from "@/components/guests/guest-list";
 import { GuestModal } from "@/components/modals/guest-modal";
 import { useCategories } from "@/hooks/use-categories";
+import { useGuests } from "@/hooks/use-guests";
 import { STATUS_LABELS, getStatusChipClass } from "@/lib/constants";
-import { MOCK_EVENTS, MOCK_GUESTS } from "@/lib/mock-data";
+import { MOCK_EVENTS } from "@/lib/mock-data";
 import type { CategoryType, CategoryField, FieldDefinition, FieldType } from "@/types";
 
 function GuestsView() {
@@ -27,7 +28,7 @@ function GuestsView() {
   const [showModal, setShowModal] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<number | string | null>(null);
 
-  const guests = MOCK_GUESTS;
+  const { guests, addGuest, updateGuest, deleteGuest } = useGuests();
   const filtered = guests.filter((g) => tab === "all" || g.side === tab);
 
   const groomGuests = guests.filter((g) => g.side === "groom");
@@ -67,9 +68,19 @@ function GuestsView() {
 
       <GuestList guests={filtered} onGuestClick={(id) => setSelectedId(id)} />
 
-      {showModal && <GuestModal onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <GuestModal
+          onClose={() => setShowModal(false)}
+          onSave={(data) => addGuest(data)}
+        />
+      )}
       {selectedGuest && (
-        <GuestModal guest={selectedGuest} onClose={() => setSelectedId(null)} />
+        <GuestModal
+          guest={selectedGuest}
+          onClose={() => setSelectedId(null)}
+          onSave={(data) => updateGuest(selectedGuest.id, data)}
+          onDelete={(id) => { deleteGuest(id); setSelectedId(null); }}
+        />
       )}
     </>
   );
