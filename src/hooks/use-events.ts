@@ -1,18 +1,20 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { MOCK_EVENTS } from "@/lib/mock-data";
 import type { CalendarEvent, CategoryType } from "@/types";
 
 export function useEvents() {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>(MOCK_EVENTS);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setLoading(false); return; }
+        if (!user) { setIsGuest(true); setLoading(false); return; }
         const { data, error } = await supabase.from("events").select("*").eq("user_id", user.id).order("date");
         if (error) console.error("useEvents load error:", error);
         if (data) {
@@ -33,6 +35,7 @@ export function useEvents() {
   const addEvent = useCallback(async (event: Omit<CalendarEvent, "id">) => {
     const tempId = Date.now();
     setEvents((prev) => [...prev, { ...event, id: tempId }]);
+    if (isGuest) return;
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
@@ -50,16 +53,17 @@ export function useEvents() {
         }
       }
     } catch (e) { console.error("addEvent exception:", e); }
-  }, []);
+  }, [isGuest]);
 
   const deleteEvent = useCallback(async (id: number | string) => {
     setEvents((prev) => prev.filter((e) => e.id !== id));
+    if (isGuest) return;
     try {
       const supabase = createClient();
       const { error } = await supabase.from("events").delete().eq("id", id);
       if (error) console.error("deleteEvent error:", error);
     } catch (e) { console.error("deleteEvent exception:", e); }
-  }, []);
+  }, [isGuest]);
 
   return { events, loading, addEvent, deleteEvent };
 }

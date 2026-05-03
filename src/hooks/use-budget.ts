@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { MOCK_BUDGET } from "@/lib/mock-data";
 import type { Budget } from "@/types";
 
 export function useBudget() {
-  const [budget, setBudget] = useState<Budget>({ total: 0 });
+  const [budget, setBudget] = useState<Budget>(MOCK_BUDGET);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

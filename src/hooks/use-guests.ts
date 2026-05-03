@@ -1,18 +1,20 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { MOCK_GUESTS } from "@/lib/mock-data";
 import type { Guest } from "@/types";
 
 export function useGuests() {
-  const [guests, setGuests] = useState<Guest[]>([]);
+  const [guests, setGuests] = useState<Guest[]>(MOCK_GUESTS);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setLoading(false); return; }
+        if (!user) { setIsGuest(true); setLoading(false); return; }
         const { data, error } = await supabase.from("guests").select("*").eq("user_id", user.id).order("created_at");
         if (error) console.error("useGuests load error:", error);
         if (data) {
@@ -35,6 +37,7 @@ export function useGuests() {
   const addGuest = useCallback(async (guest: Omit<Guest, "id">) => {
     const tempId = Date.now();
     setGuests((prev) => [...prev, { ...guest, id: tempId }]);
+    if (isGuest) return;
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
@@ -50,10 +53,11 @@ export function useGuests() {
         }
       }
     } catch (e) { console.error("addGuest exception:", e); }
-  }, []);
+  }, [isGuest]);
 
   const updateGuest = useCallback(async (id: number | string, changes: Partial<Guest>) => {
     setGuests((prev) => prev.map((g) => g.id === id ? { ...g, ...changes } : g));
+    if (isGuest) return;
     try {
       const supabase = createClient();
       const updateData: Record<string, unknown> = {};
@@ -66,16 +70,17 @@ export function useGuests() {
       const { error } = await supabase.from("guests").update(updateData).eq("id", id);
       if (error) console.error("updateGuest error:", error);
     } catch (e) { console.error("updateGuest exception:", e); }
-  }, []);
+  }, [isGuest]);
 
   const deleteGuest = useCallback(async (id: number | string) => {
     setGuests((prev) => prev.filter((g) => g.id !== id));
+    if (isGuest) return;
     try {
       const supabase = createClient();
       const { error } = await supabase.from("guests").delete().eq("id", id);
       if (error) console.error("deleteGuest error:", error);
     } catch (e) { console.error("deleteGuest exception:", e); }
-  }, []);
+  }, [isGuest]);
 
   return { guests, loading, addGuest, updateGuest, deleteGuest };
 }

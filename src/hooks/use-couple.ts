@@ -1,25 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { MOCK_COUPLE } from "@/lib/mock-data";
 import type { CoupleInfo } from "@/types";
 
-const EMPTY_COUPLE: CoupleInfo = {
-  bride: "",
-  groom: "",
-  weddingDate: "",
-  message: "",
-};
-
 export function useCouple() {
-  const [couple, setCouple] = useState<CoupleInfo>(EMPTY_COUPLE);
+  const [couple, setCouple] = useState<CoupleInfo>(MOCK_COUPLE);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setLoading(false); return; }
+        if (!user) { setIsGuest(true); setLoading(false); return; }
         const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
         if (data) {
           setCouple({
@@ -39,6 +34,7 @@ export function useCouple() {
 
   const updateCouple = async (updates: Partial<CoupleInfo>) => {
     setCouple((prev) => ({ ...prev, ...updates }));
+    if (isGuest) return;
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
