@@ -20,7 +20,7 @@ export default function HomePage() {
     <>
       <div className="px-5 py-3 flex items-center justify-between flex-shrink-0">
         <h1 className="text-lg font-bold m-0 flex items-center gap-1.5">
-          <span className="text-green-600">♡</span>
+          <img src="/icons/logo.png" alt="숲인" className="w-6 h-6 rounded-sm object-contain" />
           숲인
         </h1>
         <div className="flex gap-2">
