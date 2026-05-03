@@ -1,4 +1,4 @@
-import { formatManWon } from "@/lib/utils";
+import { formatManWon, formatTime } from "@/lib/utils";
 import type { Category } from "@/types";
 
 interface InfoCardsProps {
@@ -19,7 +19,7 @@ export function InfoCards({ category }: InfoCardsProps) {
           {category.eventDate.slice(5).replace("-", ".")}
         </div>
         <div className="text-[11px] text-ink-500 mt-0.5">
-          {category.eventTime || "시간 미정"}
+          {formatTime(category.eventTime || null) || "시간 미정"}
         </div>
       </div>
       <div className="card-soft">

@@ -7,11 +7,9 @@ import { InfoCards } from "@/components/category/info-cards";
 import { PaymentTimeline } from "@/components/category/payment-timeline";
 import { CategoryInfo } from "@/components/category/category-info";
 import { FieldList } from "@/components/category/field-list";
-import { FieldSelectorModal } from "@/components/category/field-selector-modal";
 import { FieldInputModal } from "@/components/category/field-input-modal";
 import { CategoryEditModal } from "@/components/modals/category-edit-modal";
-import { PaymentAddModal } from "@/components/modals/payment-add-modal";
-import { PhoneIcon, PinIcon, PlusIcon } from "@/components/ui/icons";
+import { PlusIcon, PinIcon } from "@/components/ui/icons";
 import { GuestStats } from "@/components/guests/guest-stats";
 import { SideSummary } from "@/components/guests/side-summary";
 import { GuestTabs } from "@/components/guests/guest-tabs";
@@ -22,7 +20,7 @@ import { useGuests } from "@/hooks/use-guests";
 import { useEvents } from "@/hooks/use-events";
 import { STATUS_LABELS, getStatusChipClass } from "@/lib/constants";
 import { formatTime } from "@/lib/utils";
-import type { CategoryType, CategoryField, FieldDefinition, FieldType } from "@/types";
+import type { CategoryType, CategoryField, FieldType } from "@/types";
 
 function GuestsView() {
   const [tab, setTab] = React.useState("all");
@@ -48,9 +46,7 @@ function GuestsView() {
           <PlusIcon width={18} height={18} />
         </button>
       </div>
-
       <GuestStats mealCount={mealCount} giftSum={giftSum} />
-
       <SideSummary
         groomCount={groomGuests.length}
         groomAtt={groomGuests.filter((g) => g.att === "attending").length}
@@ -59,29 +55,13 @@ function GuestsView() {
         brideAtt={brideGuests.filter((g) => g.att === "attending").length}
         brideUnd={brideGuests.filter((g) => g.att === "undecided").length}
       />
-
-      <GuestTabs
-        tab={tab} onTabChange={setTab}
-        totalCount={guests.length}
-        groomCount={groomGuests.length}
-        brideCount={brideGuests.length}
-      />
-
+      <GuestTabs tab={tab} onTabChange={setTab} totalCount={guests.length} groomCount={groomGuests.length} brideCount={brideGuests.length} />
       <GuestList guests={filtered} onGuestClick={(id) => setSelectedId(id)} />
-
-      {showModal && (
-        <GuestModal
-          onClose={() => setShowModal(false)}
-          onSave={(data) => addGuest(data)}
-        />
-      )}
+      {showModal && <GuestModal onClose={() => setShowModal(false)} onSave={(data) => addGuest(data)} />}
       {selectedGuest && (
-        <GuestModal
-          guest={selectedGuest}
-          onClose={() => setSelectedId(null)}
+        <GuestModal guest={selectedGuest} onClose={() => setSelectedId(null)}
           onSave={(data) => updateGuest(selectedGuest.id, data)}
-          onDelete={(id) => { deleteGuest(id); setSelectedId(null); }}
-        />
+          onDelete={(id) => { deleteGuest(id); setSelectedId(null); }} />
       )}
     </>
   );
@@ -89,44 +69,23 @@ function GuestsView() {
 
 export default function CategoryPage({ params }: { params: Promise<{ type: string }> }) {
   const { type } = use(params);
-  const { categories, fields, categoryImages, addField, updateField, deleteField, updateCategory, addPayment, togglePayment, uploadCategoryImage } = useCategories();
+  const { categories, fields, addField, updateField, deleteField, updateCategory, addPayment, togglePayment } = useCategories();
   const { events } = useEvents();
 
-  const [showFieldSelector, setShowFieldSelector] = useState(false);
-  const [selectedFieldDef, setSelectedFieldDef] = useState<FieldDefinition | null>(null);
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const [editingField, setEditingField] = useState<CategoryField | null>(null);
   const [showCategoryEdit, setShowCategoryEdit] = useState(false);
-  const [showPaymentAdd, setShowPaymentAdd] = useState(false);
 
-  if (type === "guests") {
-    return <GuestsView />;
-  }
+  if (type === "guests") return <GuestsView />;
 
   const cat = categories[type as CategoryType];
+  if (!cat) return <div className="p-5"><p>카테고리를 찾을 수 없습니다.</p></div>;
 
-  if (!cat) {
-    return (
-      <div className="p-5">
-        <p>카테고리를 찾을 수 없습니다.</p>
-      </div>
-    );
-  }
-
-  const relatedEvents = events
-    .filter((e) => e.cat === type)
-    .sort((a, b) => a.date.localeCompare(b.date));
-
+  const relatedEvents = events.filter((e) => e.cat === type).sort((a, b) => a.date.localeCompare(b.date));
   const categoryFields = fields[type] || [];
-  const existingKeys = categoryFields.map((f) => f.fieldKey);
 
   return (
     <>
-      <CategoryHero
-        name={cat.name}
-        imageUrl={categoryImages[type] || null}
-        onUploadImage={(file) => uploadCategoryImage(type, file)}
-      />
+      <CategoryHero name={cat.name} />
 
       <div className="pb-[90px]">
         <div className="px-5 pt-[18px] pb-1">
@@ -154,32 +113,10 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
         <ProgressStepper status={cat.status} onStatusChange={(newStatus) => updateCategory(type, { status: newStatus })} />
         <InfoCards category={cat} />
 
-        {cat.contact && cat.contact !== "-" && (
-          <div className="px-5 pb-4 flex gap-2">
-            <button className="btn-secondary flex-1 flex items-center justify-center gap-1.5">
-              <PhoneIcon width={14} height={14} /> 전화
-            </button>
-            <button className="btn-secondary flex-1 flex items-center justify-center gap-1.5">
-              <PinIcon width={14} height={14} /> 길찾기
-            </button>
-          </div>
-        )}
+        {/* 납부 일정 */}
+        <PaymentTimeline payments={cat.payments} onToggle={(idx) => togglePayment(type, idx)} />
 
-        <PaymentTimeline
-          payments={cat.payments}
-          onToggle={(idx) => togglePayment(type, idx)}
-        />
-
-        {/* 납부 추가 버튼 */}
-        <div className="px-5 pb-2">
-          <button
-            onClick={() => setShowPaymentAdd(true)}
-            className="text-[12px] text-green-600 font-medium bg-transparent border-none cursor-pointer"
-          >
-            + 납부 일정 추가
-          </button>
-        </div>
-
+        {/* 기본 정보 */}
         <CategoryInfo category={cat} onEdit={() => setShowCategoryEdit(true)} />
 
         {/* 유연한 필드 목록 */}
@@ -189,16 +126,7 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
           onDelete={(id) => deleteField(type, id)}
         />
 
-        {/* + 항목 추가 버튼 */}
-        <div className="px-5 pb-4">
-          <button
-            onClick={() => setShowFieldSelector(true)}
-            className="w-full py-3 border border-dashed border-ink-300 rounded-xl text-[13px] text-ink-500 font-medium cursor-pointer bg-white font-sans"
-          >
-            + 항목 추가
-          </button>
-        </div>
-
+        {/* 관련 일정 */}
         {relatedEvents.length > 0 && (
           <div className="px-5 pb-4">
             <div className="text-[11px] text-ink-500 uppercase tracking-wider font-medium mb-2.5">
@@ -218,49 +146,11 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
         )}
       </div>
 
-      {showFieldSelector && (
-        <FieldSelectorModal
-          categoryType={type as CategoryType}
-          existingKeys={existingKeys}
-          onSelect={(def) => {
-            setShowFieldSelector(false);
-            setSelectedFieldDef(def);
-          }}
-          onCustom={() => {
-            setShowFieldSelector(false);
-            setShowCustomInput(true);
-          }}
-          onClose={() => setShowFieldSelector(false)}
-        />
-      )}
-
-      {selectedFieldDef && (
-        <FieldInputModal
-          definition={selectedFieldDef}
-          onSave={(data) => addField(type, data)}
-          onClose={() => setSelectedFieldDef(null)}
-        />
-      )}
-
-      {showCustomInput && (
-        <FieldInputModal
-          onSave={(data) => addField(type, data)}
-          onClose={() => setShowCustomInput(false)}
-        />
-      )}
-
       {editingField && (
         <FieldInputModal
-          definition={{
-            key: editingField.fieldKey,
-            label: editingField.fieldLabel,
-            type: editingField.fieldType as FieldType,
-            options: editingField.fieldOptions ? editingField.fieldOptions.split(",") : undefined,
-          }}
+          definition={{ key: editingField.fieldKey, label: editingField.fieldLabel, type: editingField.fieldType as FieldType, options: editingField.fieldOptions ? editingField.fieldOptions.split(",") : undefined }}
           initialValue={editingField.fieldValue}
-          onSave={(data) => {
-            updateField(type, editingField.id, data.value);
-          }}
+          onSave={(data) => updateField(type, editingField.id, data.value)}
           onClose={() => setEditingField(null)}
         />
       )}
@@ -268,15 +158,11 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
       {showCategoryEdit && (
         <CategoryEditModal
           category={cat}
+          categoryType={type}
           onSave={(updates) => updateCategory(type, updates)}
+          onAddPayment={(payment) => addPayment(type, payment)}
+          onAddField={(data) => addField(type, data)}
           onClose={() => setShowCategoryEdit(false)}
-        />
-      )}
-
-      {showPaymentAdd && (
-        <PaymentAddModal
-          onSave={(payment) => addPayment(type, payment)}
-          onClose={() => setShowPaymentAdd(false)}
         />
       )}
     </>

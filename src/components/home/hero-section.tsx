@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { daysUntil } from "@/lib/utils";
+import { MoreIcon } from "@/components/ui/icons";
 import { CoupleEditModal } from "@/components/modals/couple-edit-modal";
 import type { CoupleInfo } from "@/types";
 
@@ -16,16 +17,6 @@ interface HeroSectionProps {
 export function HeroSection({ couple, heroImage, onUpdateCouple, onUpdateMessage, onUploadImage }: HeroSectionProps) {
   const dday = daysUntil(couple.weddingDate);
   const [showEdit, setShowEdit] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !onUploadImage) return;
-    setUploading(true);
-    await onUploadImage(file);
-    setUploading(false);
-  };
 
   const handleSave = (updates: Partial<CoupleInfo>) => {
     onUpdateCouple?.(updates);
@@ -37,7 +28,7 @@ export function HeroSection({ couple, heroImage, onUpdateCouple, onUpdateMessage
   return (
     <div className="px-4">
       <div
-        className="h-[280px] rounded-[20px] relative border border-green-200 overflow-hidden"
+        className="h-[340px] rounded-[20px] relative border border-green-200 overflow-hidden"
         style={
           heroImage
             ? { backgroundImage: `url(${heroImage})`, backgroundSize: "cover", backgroundPosition: "center" }
@@ -48,27 +39,18 @@ export function HeroSection({ couple, heroImage, onUpdateCouple, onUpdateMessage
           style={{ background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.45) 100%)" }}
         />
 
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="absolute top-3.5 left-3.5 bg-white/85 w-8 h-8 rounded-full flex items-center justify-center text-[14px] border-none cursor-pointer disabled:opacity-50"
-          aria-label="히어로 이미지 업로드"
-        >
-          {uploading ? "⏳" : "📷"}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageUpload}
-        />
-
+        {/* 편집 버튼 (이미지 + 정보 통합) */}
         <button
           onClick={() => setShowEdit(true)}
-          className="absolute top-3.5 right-3.5 bg-white/85 px-2.5 py-1 rounded-full text-[11px] text-green-700 font-semibold border-none cursor-pointer"
+          className="absolute top-3.5 left-3.5 bg-white/85 w-8 h-8 rounded-full flex items-center justify-center text-[14px] border-none cursor-pointer"
+          aria-label="편집"
         >
-          ✎ 편집
+          ✎
+        </button>
+
+        {/* 메뉴 버튼 */}
+        <button className="absolute top-3.5 right-3.5 bg-white/85 w-8 h-8 rounded-full flex items-center justify-center border-none cursor-pointer">
+          <MoreIcon width={16} height={16} />
         </button>
 
         <div className="absolute bottom-[18px] left-[18px] right-[18px] text-white">
@@ -96,6 +78,7 @@ export function HeroSection({ couple, heroImage, onUpdateCouple, onUpdateMessage
         <CoupleEditModal
           couple={couple}
           onSave={handleSave}
+          onUploadImage={onUploadImage}
           onClose={() => setShowEdit(false)}
         />
       )}
