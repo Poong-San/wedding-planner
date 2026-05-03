@@ -1,9 +1,20 @@
-// 카테고리 타입 키
+// 카테고리 타입 키 (세부 카테고리 포함)
 export type CategoryType =
-  | "wedding_hall" | "sdm" | "home_goods" | "ceremony"
-  | "honeymoon" | "jewelry" | "yedan" | "invitation" | "newhome" | "guests";
+  // 웨딩홀 (단독)
+  | "wedding_hall"
+  // 스드메 세부
+  | "studio" | "dress" | "hair_makeup"
+  // 본식 세부
+  | "invitation" | "video" | "mc" | "singer" | "guests" | "return_gift"
+  // 혼수 세부
+  | "wedding_ring" | "newhome" | "appliance" | "furniture" | "jewelry" | "yedan"
+  // 허니문 (단독)
+  | "honeymoon";
 
-// 진행 상태 (5단계)
+// 메인 탭 키
+export type MainTabType = "wedding_hall" | "sdm" | "ceremony" | "home_goods" | "honeymoon";
+
+// 진행 상태 (6단계)
 export type CategoryStatus = "pending" | "consulting" | "contracted" | "in_progress" | "payment" | "completed";
 
 // 참석 여부
@@ -39,7 +50,7 @@ export interface Category {
 // 일정
 export interface CalendarEvent {
   id: number | string;
-  date: string;       // YYYY-MM-DD
+  date: string;
   time: string | null;
   title: string;
   cat: CategoryType;
@@ -48,7 +59,7 @@ export interface CalendarEvent {
 // 체크리스트 항목
 export interface ChecklistItem {
   id: number | string;
-  timeline: string;   // "6개월 전", "3개월 전", "1개월 전", "1주 전"
+  timeline: string;
   title: string;
   done: boolean;
 }
@@ -58,7 +69,7 @@ export interface Guest {
   id: number | string;
   name: string;
   side: GuestSide;
-  rel: string;         // 관계: 가족, 친구, 직장, 지인
+  rel: string;
   att: AttendanceStatus;
   meal: boolean;
   gift: number;
@@ -68,7 +79,7 @@ export interface Guest {
 export interface CoupleInfo {
   bride: string;
   groom: string;
-  weddingDate: string; // YYYY-MM-DD
+  weddingDate: string;
   message: string;
 }
 

@@ -15,7 +15,7 @@ interface AddEventModalProps {
 export function AddEventModal({ date, onClose, onAdd }: AddEventModalProps) {
   const [title, setTitle] = useState("");
   const [time, setTime] = useState("");
-  const [cat, setCat] = useState<CategoryType>("ceremony");
+  const [cat, setCat] = useState<CategoryType>("wedding_hall");
 
   const handleSubmit = () => {
     if (!title.trim()) return;
