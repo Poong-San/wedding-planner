@@ -14,7 +14,7 @@ export default function ReservationsPage() {
 
   const filtered = cats.filter((c) => {
     if (filter === "all") return true;
-    if (filter === "in_progress") return ["consulting", "contracted", "in_progress"].includes(c.status);
+    if (filter === "in_progress") return ["consulting", "contracted", "in_progress", "payment"].includes(c.status);
     if (filter === "completed") return c.status === "completed";
     if (filter === "pending") return c.status === "pending";
     return true;
@@ -70,7 +70,7 @@ export default function ReservationsPage() {
         ) : (
           filtered.map((c) => {
             const isDone = c.status === "completed" || c.status === "contracted";
-            const isActive = c.status === "consulting" || c.status === "in_progress";
+            const isActive = c.status === "consulting" || c.status === "in_progress" || c.status === "payment";
             return (
               <div
                 key={c.type}

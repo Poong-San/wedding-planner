@@ -31,12 +31,13 @@ export const STATUS_LABELS: Record<CategoryStatus, string> = {
   consulting: "상담중",
   contracted: "계약완료",
   in_progress: "진행중",
+  payment: "잔금",
   completed: "완료",
 };
 
 export function getStatusChipClass(status: CategoryStatus): string {
   if (status === "completed" || status === "contracted") return "chip-done";
-  if (status === "consulting" || status === "in_progress") return "chip-active";
+  if (status === "consulting" || status === "in_progress" || status === "payment") return "chip-active";
   return "chip-pending";
 }
 
@@ -45,6 +46,7 @@ export const STATUS_STEP_INDEX: Record<CategoryStatus, number> = {
   consulting: 0,
   contracted: 1,
   in_progress: 2,
+  payment: 3,
   completed: 4,
 };
 

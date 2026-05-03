@@ -61,6 +61,7 @@ export function CategoryEditModal({ category, categoryType, onSave, onAddPayment
     { value: "consulting", label: "상담중" },
     { value: "contracted", label: "계약완료" },
     { value: "in_progress", label: "진행중" },
+    { value: "payment", label: "잔금" },
     { value: "completed", label: "완료" },
   ];
 

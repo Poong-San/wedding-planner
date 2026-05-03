@@ -6,7 +6,7 @@ const STEP_STATUS_MAP: CategoryStatus[] = [
   "consulting",   // 0: 상담
   "contracted",   // 1: 계약
   "in_progress",  // 2: 진행
-  "in_progress",  // 3: 잔금 (진행의 일부)
+  "payment",      // 3: 잔금
   "completed",    // 4: 완료
 ];
 

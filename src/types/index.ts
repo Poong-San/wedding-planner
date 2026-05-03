@@ -4,7 +4,7 @@ export type CategoryType =
   | "honeymoon" | "jewelry" | "yedan" | "invitation" | "newhome" | "guests";
 
 // 진행 상태 (5단계)
-export type CategoryStatus = "pending" | "consulting" | "contracted" | "in_progress" | "completed";
+export type CategoryStatus = "pending" | "consulting" | "contracted" | "in_progress" | "payment" | "completed";
 
 // 참석 여부
 export type AttendanceStatus = "attending" | "not_attending" | "undecided";
