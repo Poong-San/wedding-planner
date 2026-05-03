@@ -9,6 +9,8 @@ import { CategoryInfo } from "@/components/category/category-info";
 import { FieldList } from "@/components/category/field-list";
 import { FieldSelectorModal } from "@/components/category/field-selector-modal";
 import { FieldInputModal } from "@/components/category/field-input-modal";
+import { CategoryEditModal } from "@/components/modals/category-edit-modal";
+import { PaymentAddModal } from "@/components/modals/payment-add-modal";
 import { PhoneIcon, PinIcon, PlusIcon } from "@/components/ui/icons";
 import { GuestStats } from "@/components/guests/guest-stats";
 import { SideSummary } from "@/components/guests/side-summary";
@@ -75,12 +77,14 @@ function GuestsView() {
 
 export default function CategoryPage({ params }: { params: Promise<{ type: string }> }) {
   const { type } = use(params);
-  const { categories, fields, addField, updateField, deleteField } = useCategories();
+  const { categories, fields, addField, updateField, deleteField, updateCategory, addPayment, togglePayment } = useCategories();
 
   const [showFieldSelector, setShowFieldSelector] = useState(false);
   const [selectedFieldDef, setSelectedFieldDef] = useState<FieldDefinition | null>(null);
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [editingField, setEditingField] = useState<CategoryField | null>(null);
+  const [showCategoryEdit, setShowCategoryEdit] = useState(false);
+  const [showPaymentAdd, setShowPaymentAdd] = useState(false);
 
   if (type === "guests") {
     return <GuestsView />;
@@ -109,10 +113,18 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
 
       <div className="pb-[90px]">
         <div className="px-5 pt-[18px] pb-1">
-          <span className={`chip ${getStatusChipClass(cat.status)}`}>
-            {STATUS_LABELS[cat.status]}
-          </span>
-          <h2 className="text-xl font-bold mt-2.5 mb-1">
+          <div className="flex items-center justify-between mb-2">
+            <span className={`chip ${getStatusChipClass(cat.status)}`}>
+              {STATUS_LABELS[cat.status]}
+            </span>
+            <button
+              onClick={() => setShowCategoryEdit(true)}
+              className="text-[12px] text-green-600 font-medium bg-transparent border-none cursor-pointer"
+            >
+              ✎ 수정
+            </button>
+          </div>
+          <h2 className="text-xl font-bold mt-0 mb-1">
             {cat.vendor || `${cat.name} (업체 미정)`}
           </h2>
           {cat.address && (
@@ -136,7 +148,21 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
           </div>
         )}
 
-        <PaymentTimeline payments={cat.payments} />
+        <PaymentTimeline
+          payments={cat.payments}
+          onToggle={(idx) => togglePayment(type, idx)}
+        />
+
+        {/* 납부 추가 버튼 */}
+        <div className="px-5 pb-2">
+          <button
+            onClick={() => setShowPaymentAdd(true)}
+            className="text-[12px] text-green-600 font-medium bg-transparent border-none cursor-pointer"
+          >
+            + 납부 일정 추가
+          </button>
+        </div>
+
         <CategoryInfo category={cat} />
 
         {/* 유연한 필드 목록 */}
@@ -220,6 +246,21 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
             addField(type, data);
           }}
           onClose={() => setEditingField(null)}
+        />
+      )}
+
+      {showCategoryEdit && (
+        <CategoryEditModal
+          category={cat}
+          onSave={(updates) => updateCategory(type, updates)}
+          onClose={() => setShowCategoryEdit(false)}
+        />
+      )}
+
+      {showPaymentAdd && (
+        <PaymentAddModal
+          onSave={(payment) => addPayment(type, payment)}
+          onClose={() => setShowPaymentAdd(false)}
         />
       )}
     </>

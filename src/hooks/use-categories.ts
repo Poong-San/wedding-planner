@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { MOCK_CATEGORIES } from "@/lib/mock-data";
-import type { Category, CategoryField, FieldType } from "@/types";
+import type { Category, CategoryField, CategoryStatus, FieldType } from "@/types";
 
 export function useCategories() {
   const [categories, setCategories] = useState<Record<string, Category>>(MOCK_CATEGORIES);
@@ -140,5 +140,85 @@ export function useCategories() {
     } catch { /* ignore */ }
   }, []);
 
-  return { categories, fields, loading, addField, updateField, deleteField };
+  const updateCategory = useCallback(async (
+    categoryType: string,
+    updates: Partial<{
+      vendor: string;
+      manager: string;
+      contact: string;
+      address: string;
+      status: CategoryStatus;
+      notes: string;
+      eventDate: string;
+      eventTime: string;
+      total: number;
+    }>
+  ) => {
+    // Update local state immediately
+    setCategories((prev) => ({
+      ...prev,
+      [categoryType]: { ...prev[categoryType], ...updates },
+    }));
+
+    // Save to Supabase
+    const dbId = categoryDbIds[categoryType];
+    if (dbId) {
+      try {
+        const supabase = createClient();
+        const dbUpdates: Record<string, unknown> = {};
+        if (updates.vendor !== undefined) dbUpdates.vendor = updates.vendor;
+        if (updates.manager !== undefined) dbUpdates.manager = updates.manager;
+        if (updates.contact !== undefined) dbUpdates.contact = updates.contact;
+        if (updates.address !== undefined) dbUpdates.address = updates.address;
+        if (updates.status !== undefined) dbUpdates.status = updates.status;
+        if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+        if (updates.eventDate !== undefined) dbUpdates.event_date = updates.eventDate;
+        if (updates.eventTime !== undefined) dbUpdates.event_time = updates.eventTime;
+        if (updates.total !== undefined) dbUpdates.total = updates.total;
+        await supabase.from("categories").update(dbUpdates).eq("id", dbId);
+      } catch { /* ignore */ }
+    }
+  }, [categoryDbIds]);
+
+  const addPayment = useCallback(async (
+    categoryType: string,
+    payment: { label: string; amount: number; date: string }
+  ) => {
+    const cat = categories[categoryType];
+    if (!cat) return;
+    const newPayment = { ...payment, done: false };
+    const newPayments = [...(cat.payments || []), newPayment];
+    setCategories((prev) => ({
+      ...prev,
+      [categoryType]: { ...prev[categoryType], payments: newPayments },
+    }));
+    const dbId = categoryDbIds[categoryType];
+    if (dbId) {
+      try {
+        const supabase = createClient();
+        await supabase.from("payments").insert({
+          category_id: dbId,
+          label: payment.label,
+          amount: payment.amount,
+          date: payment.date,
+          done: false,
+          sort_order: newPayments.length,
+        });
+      } catch { /* ignore */ }
+    }
+  }, [categories, categoryDbIds]);
+
+  const togglePayment = useCallback(async (categoryType: string, paymentIndex: number) => {
+    const cat = categories[categoryType];
+    if (!cat) return;
+    const newPayments = cat.payments.map((p, i) =>
+      i === paymentIndex ? { ...p, done: !p.done } : p
+    );
+    setCategories((prev) => ({
+      ...prev,
+      [categoryType]: { ...prev[categoryType], payments: newPayments },
+    }));
+  }, [categories]);
+
+  return { categories, fields, loading, addField, updateField, deleteField, updateCategory, addPayment, togglePayment };
 }
