@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { uploadImage } from "@/lib/upload";
 import { MOCK_CATEGORIES } from "@/lib/mock-data";
 import type { Category, CategoryField, CategoryStatus, FieldType, Payment } from "@/types";
 
@@ -9,6 +10,7 @@ export function useCategories() {
   const [fields, setFields] = useState<Record<string, CategoryField[]>>({});
   const [categoryDbIds, setCategoryDbIds] = useState<Record<string, string>>({});
   const [paymentDbIds, setPaymentDbIds] = useState<Record<string, string[]>>({});
+  const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -34,6 +36,7 @@ export function useCategories() {
           const fieldMap: Record<string, CategoryField[]> = {};
           const idMap: Record<string, string> = {};
           const pIdMap: Record<string, string[]> = {};
+          const imgMap: Record<string, string> = {};
 
           cats.forEach((c: any) => {
             const sortedPayments = (c.payments || [])
@@ -63,6 +66,7 @@ export function useCategories() {
               notes: c.notes || "",
             };
             idMap[c.type] = c.id;
+            if (c.image_url) imgMap[c.type] = c.image_url;
             fieldMap[c.type] = (c.category_fields || [])
               .map((f: any) => ({
                 id: f.id,
@@ -82,6 +86,7 @@ export function useCategories() {
           setFields(fieldMap);
           setCategoryDbIds(idMap);
           setPaymentDbIds(pIdMap);
+          setCategoryImages(imgMap);
         }
       } catch (e) {
         console.error("useCategories exception:", e);
@@ -260,5 +265,19 @@ export function useCategories() {
     }
   }, [categories, paymentDbIds]);
 
-  return { categories, fields, loading, addField, updateField, deleteField, updateCategory, addPayment, togglePayment };
+  const uploadCategoryImage = useCallback(async (categoryType: string, file: File) => {
+    const url = await uploadImage(file, `category/${categoryType}`);
+    if (!url) return;
+    setCategoryImages((prev) => ({ ...prev, [categoryType]: url }));
+    const dbId = categoryDbIds[categoryType];
+    if (dbId) {
+      try {
+        const supabase = createClient();
+        const { error } = await supabase.from("categories").update({ image_url: url }).eq("id", dbId);
+        if (error) console.error("uploadCategoryImage DB error:", error);
+      } catch (e) { console.error("uploadCategoryImage exception:", e); }
+    }
+  }, [categoryDbIds]);
+
+  return { categories, fields, categoryImages, loading, addField, updateField, deleteField, updateCategory, addPayment, togglePayment, uploadCategoryImage };
 }

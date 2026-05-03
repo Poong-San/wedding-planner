@@ -1,37 +1,30 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { daysUntil } from "@/lib/utils";
 import { CoupleEditModal } from "@/components/modals/couple-edit-modal";
 import type { CoupleInfo } from "@/types";
 
 interface HeroSectionProps {
   couple: CoupleInfo;
+  heroImage: string | null;
   onUpdateCouple?: (updates: Partial<CoupleInfo>) => void;
-  onUpdateMessage?: (message: string) => void; // keep for backward compat
+  onUpdateMessage?: (message: string) => void;
+  onUploadImage?: (file: File) => void;
 }
 
-export function HeroSection({ couple, onUpdateCouple, onUpdateMessage }: HeroSectionProps) {
+export function HeroSection({ couple, heroImage, onUpdateCouple, onUpdateMessage, onUploadImage }: HeroSectionProps) {
   const dday = daysUntil(couple.weddingDate);
   const [showEdit, setShowEdit] = useState(false);
-  const [heroImage, setHeroImage] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("hero_image");
-    if (saved) setHeroImage(saved);
-  }, []);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      setHeroImage(dataUrl);
-      localStorage.setItem("hero_image", dataUrl);
-    };
-    reader.readAsDataURL(file);
+    if (!file || !onUploadImage) return;
+    setUploading(true);
+    await onUploadImage(file);
+    setUploading(false);
   };
 
   const handleSave = (updates: Partial<CoupleInfo>) => {
@@ -55,13 +48,13 @@ export function HeroSection({ couple, onUpdateCouple, onUpdateMessage }: HeroSec
           style={{ background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.45) 100%)" }}
         />
 
-        {/* 이미지 업로드 버튼 */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="absolute top-3.5 left-3.5 bg-white/85 w-8 h-8 rounded-full flex items-center justify-center text-[14px] border-none cursor-pointer"
+          disabled={uploading}
+          className="absolute top-3.5 left-3.5 bg-white/85 w-8 h-8 rounded-full flex items-center justify-center text-[14px] border-none cursor-pointer disabled:opacity-50"
           aria-label="히어로 이미지 업로드"
         >
-          📷
+          {uploading ? "⏳" : "📷"}
         </button>
         <input
           ref={fileInputRef}
@@ -71,7 +64,6 @@ export function HeroSection({ couple, onUpdateCouple, onUpdateMessage }: HeroSec
           onChange={handleImageUpload}
         />
 
-        {/* 편집 버튼 */}
         <button
           onClick={() => setShowEdit(true)}
           className="absolute top-3.5 right-3.5 bg-white/85 px-2.5 py-1 rounded-full text-[11px] text-green-700 font-semibold border-none cursor-pointer"
@@ -93,7 +85,6 @@ export function HeroSection({ couple, onUpdateCouple, onUpdateMessage }: HeroSec
         </div>
       </div>
 
-      {/* 메시지 표시 (클릭하면 편집 모달) */}
       <p
         onClick={() => setShowEdit(true)}
         className="text-center text-[13px] text-ink-500 my-3.5 italic cursor-pointer"

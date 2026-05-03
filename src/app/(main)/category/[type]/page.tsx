@@ -89,7 +89,7 @@ function GuestsView() {
 
 export default function CategoryPage({ params }: { params: Promise<{ type: string }> }) {
   const { type } = use(params);
-  const { categories, fields, addField, updateField, deleteField, updateCategory, addPayment, togglePayment } = useCategories();
+  const { categories, fields, categoryImages, addField, updateField, deleteField, updateCategory, addPayment, togglePayment, uploadCategoryImage } = useCategories();
   const { events } = useEvents();
 
   const [showFieldSelector, setShowFieldSelector] = useState(false);
@@ -122,7 +122,11 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
 
   return (
     <>
-      <CategoryHero name={cat.name} categoryType={type} />
+      <CategoryHero
+        name={cat.name}
+        imageUrl={categoryImages[type] || null}
+        onUploadImage={(file) => uploadCategoryImage(type, file)}
+      />
 
       <div className="pb-[90px]">
         <div className="px-5 pt-[18px] pb-1">

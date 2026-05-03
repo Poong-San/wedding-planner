@@ -1,11 +1,13 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { uploadImage } from "@/lib/upload";
 import { MOCK_COUPLE } from "@/lib/mock-data";
 import type { CoupleInfo } from "@/types";
 
 export function useCouple() {
   const [couple, setCouple] = useState<CoupleInfo>(MOCK_COUPLE);
+  const [heroImage, setHeroImage] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -22,6 +24,7 @@ export function useCouple() {
             weddingDate: data.wedding_date || "",
             message: data.couple_message || "",
           });
+          if (data.couple_photo_url) setHeroImage(data.couple_photo_url);
         }
       } catch (e) {
         console.error("useCouple load error:", e);
@@ -48,7 +51,21 @@ export function useCouple() {
     }
   };
 
+  const uploadHeroImage = useCallback(async (file: File) => {
+    const url = await uploadImage(file, "hero");
+    if (!url) return;
+    setHeroImage(url);
+    if (!profileId) return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from("profiles").update({ couple_photo_url: url }).eq("id", profileId);
+      if (error) console.error("uploadHeroImage DB error:", error);
+    } catch (e) {
+      console.error("uploadHeroImage exception:", e);
+    }
+  }, [profileId]);
+
   const updateMessage = (message: string) => updateCouple({ message });
 
-  return { couple, loading, updateCouple, updateMessage };
+  return { couple, heroImage, loading, updateCouple, updateMessage, uploadHeroImage };
 }
