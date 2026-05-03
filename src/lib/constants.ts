@@ -41,10 +41,10 @@ export function getStatusChipClass(status: CategoryStatus): string {
 }
 
 export const STATUS_STEP_INDEX: Record<CategoryStatus, number> = {
-  pending: 0,
-  consulting: 1,
-  contracted: 2,
-  in_progress: 3,
+  pending: -1,
+  consulting: 0,
+  contracted: 1,
+  in_progress: 2,
   completed: 4,
 };
 
