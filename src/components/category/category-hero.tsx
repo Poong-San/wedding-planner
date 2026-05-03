@@ -1,14 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevLeftIcon } from "@/components/ui/icons";
+import { ChevLeftIcon, MenuIcon } from "@/components/ui/icons";
 
 interface CategoryHeroProps {
   name: string;
-  onEdit?: () => void;
 }
 
-export function CategoryHero({ name, onEdit }: CategoryHeroProps) {
+export function CategoryHero({ name }: CategoryHeroProps) {
   const router = useRouter();
 
   return (
@@ -22,12 +21,9 @@ export function CategoryHero({ name, onEdit }: CategoryHeroProps) {
         <ChevLeftIcon width={20} height={20} />
       </button>
 
-      <button
-        onClick={() => onEdit?.()}
-        className="absolute right-3.5 w-9 h-9 rounded-full flex items-center justify-center border-none cursor-pointer bg-transparent text-[16px]"
-        aria-label="편집"
-      >
-        ✎
+      {/* 메뉴 */}
+      <button className="absolute right-3.5 w-9 h-9 rounded-full flex items-center justify-center border-none cursor-pointer bg-transparent">
+        <MenuIcon width={20} height={20} />
       </button>
     </div>
   );
