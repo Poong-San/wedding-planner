@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchIcon, BellIcon } from "@/components/ui/icons";
+import { BellIcon, MenuIcon } from "@/components/ui/icons";
 import { CategoryTabs } from "@/components/layout/category-tabs";
 import { HeroSection } from "@/components/home/hero-section";
 import { BudgetSummary } from "@/components/home/budget-summary";
@@ -31,14 +31,14 @@ export default function HomePage() {
       <div className="px-5 py-3 flex items-center justify-between flex-shrink-0">
         <h1 className="text-lg font-bold m-0 flex items-center gap-1.5">
           <span className="text-green-600">♡</span>
-          우리의 결혼
+          숲인
         </h1>
         <div className="flex gap-2">
           <button className="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center border-none cursor-pointer">
-            <SearchIcon width={18} height={18} />
+            <BellIcon width={18} height={18} />
           </button>
           <button className="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center border-none cursor-pointer">
-            <BellIcon width={18} height={18} />
+            <MenuIcon width={18} height={18} />
           </button>
         </div>
       </div>

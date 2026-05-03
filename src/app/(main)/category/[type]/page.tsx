@@ -85,7 +85,7 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
 
   return (
     <>
-      <CategoryHero name={cat.name} />
+      <CategoryHero name={cat.name} onEdit={() => setShowCategoryEdit(true)} />
 
       <div className="pb-[90px]">
         <div className="px-5 pt-[18px] pb-1">

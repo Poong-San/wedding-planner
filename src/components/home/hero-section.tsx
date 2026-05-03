@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { daysUntil } from "@/lib/utils";
-import { MoreIcon } from "@/components/ui/icons";
 import { CoupleEditModal } from "@/components/modals/couple-edit-modal";
 import type { CoupleInfo } from "@/types";
 
@@ -39,18 +38,13 @@ export function HeroSection({ couple, heroImage, onUpdateCouple, onUpdateMessage
           style={{ background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.45) 100%)" }}
         />
 
-        {/* 편집 버튼 (이미지 + 정보 통합) */}
+        {/* 편집 버튼 (우측 상단) */}
         <button
           onClick={() => setShowEdit(true)}
-          className="absolute top-3.5 left-3.5 bg-white/85 w-8 h-8 rounded-full flex items-center justify-center text-[14px] border-none cursor-pointer"
+          className="absolute top-3.5 right-3.5 bg-white/85 w-8 h-8 rounded-full flex items-center justify-center text-[14px] border-none cursor-pointer"
           aria-label="편집"
         >
           ✎
-        </button>
-
-        {/* 메뉴 버튼 */}
-        <button className="absolute top-3.5 right-3.5 bg-white/85 w-8 h-8 rounded-full flex items-center justify-center border-none cursor-pointer">
-          <MoreIcon width={16} height={16} />
         </button>
 
         <div className="absolute bottom-[18px] left-[18px] right-[18px] text-white">
