@@ -69,6 +69,13 @@ export const FIELD_DEFINITIONS: Partial<Record<CategoryType, FieldDefinition[]>>
     { key: "cost", label: "총 비용", type: "number" },
     { key: "memo", label: "메모", type: "textarea" },
   ],
+  meeting: [
+    { key: "date", label: "상견례 날짜", type: "date" },
+    { key: "location", label: "장소", type: "text" },
+    { key: "restaurant", label: "식당명", type: "text" },
+    { key: "cost", label: "비용", type: "number" },
+    { key: "memo", label: "메모", type: "textarea" },
+  ],
   wedding_ring: [
     { key: "vendor", label: "업체명 / 브랜드", type: "text" },
     { key: "cost", label: "금액", type: "number" },

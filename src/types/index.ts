@@ -5,7 +5,7 @@ export type CategoryType =
   // 스드메 세부
   | "studio" | "dress" | "hair_makeup"
   // 본식 세부
-  | "invitation" | "video" | "mc" | "singer" | "guests" | "return_gift"
+  | "invitation" | "video" | "mc" | "singer" | "guests" | "return_gift" | "meeting"
   // 혼수 세부
   | "wedding_ring" | "newhome" | "appliance" | "furniture" | "jewelry" | "yedan"
   // 허니문 (단독)

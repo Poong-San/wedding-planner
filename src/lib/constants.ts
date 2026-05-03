@@ -18,6 +18,7 @@ export const SUB_CATEGORIES: Record<MainTabType, { type: CategoryType; name: str
     { type: "hair_makeup", name: "헤어메이크업" },
   ],
   ceremony: [
+    { type: "meeting", name: "상견례" },
     { type: "invitation", name: "청첩장" },
     { type: "video", name: "영상" },
     { type: "mc", name: "사회" },
@@ -40,7 +41,7 @@ export const SUB_CATEGORIES: Record<MainTabType, { type: CategoryType; name: str
 export const CATEGORY_LABELS: Record<CategoryType, string> = {
   wedding_hall: "웨딩홀",
   studio: "스튜디오", dress: "드레스", hair_makeup: "헤어메이크업",
-  invitation: "청첩장", video: "영상", mc: "사회", singer: "축가", guests: "하객", return_gift: "답례품",
+  invitation: "청첩장", video: "영상", mc: "사회", singer: "축가", guests: "하객", return_gift: "답례품", meeting: "상견례",
   wedding_ring: "웨딩링", newhome: "신혼집", appliance: "가전", furniture: "가구", jewelry: "예물", yedan: "예단",
   honeymoon: "허니문",
 };
