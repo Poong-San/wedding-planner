@@ -61,13 +61,6 @@ export function HeroSection({ couple, heroImage, onUpdateCouple, onUpdateMessage
         </div>
       </div>
 
-      <p
-        onClick={() => setShowEdit(true)}
-        className="text-center text-[13px] text-ink-500 my-3.5 italic cursor-pointer"
-      >
-        &ldquo;{couple.message}&rdquo; <span className="text-[10px]">✎</span>
-      </p>
-
       {showEdit && (
         <CoupleEditModal
           couple={couple}

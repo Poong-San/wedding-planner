@@ -3,23 +3,13 @@
 import { BellIcon, MenuIcon } from "@/components/ui/icons";
 import { CategoryTabs } from "@/components/layout/category-tabs";
 import { HeroSection } from "@/components/home/hero-section";
-import { BudgetSummary } from "@/components/home/budget-summary";
 import { UpcomingEvents } from "@/components/home/upcoming-events";
-import { CategoryGrid } from "@/components/home/category-grid";
 import { useCouple } from "@/hooks/use-couple";
-import { useCategories } from "@/hooks/use-categories";
 import { useEvents } from "@/hooks/use-events";
-import { useBudget } from "@/hooks/use-budget";
-import { getCategorySpent } from "@/lib/utils";
 
 export default function HomePage() {
   const { couple, heroImage, updateCouple, updateMessage, uploadHeroImage } = useCouple();
-  const { categories } = useCategories();
   const { events } = useEvents();
-  const { budget } = useBudget();
-
-  const cats = Object.values(categories);
-  const used = cats.reduce((s, c) => s + getCategorySpent(c), 0);
 
   const upcoming = events
     .filter((e) => new Date(e.date) >= new Date())
@@ -46,9 +36,7 @@ export default function HomePage() {
       <CategoryTabs />
 
       <HeroSection couple={couple} heroImage={heroImage} onUpdateCouple={updateCouple} onUpdateMessage={updateMessage} onUploadImage={uploadHeroImage} />
-      <BudgetSummary total={budget.total} used={used} />
       <UpcomingEvents events={upcoming} />
-      <CategoryGrid categories={cats} />
     </>
   );
 }
