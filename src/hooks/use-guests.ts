@@ -7,15 +7,18 @@ import type { Guest } from "@/types";
 export function useGuests() {
   const [guests, setGuests] = useState<Guest[]>(MOCK_GUESTS);
   const [loading, setLoading] = useState(true);
-  const [isGuest, setIsGuest] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setIsGuest(true); setLoading(false); return; }
-        const { data, error } = await supabase.from("guests").select("*").eq("user_id", user.id).order("created_at");
+        const { data: profile } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
+        const uid = profile?.id;
+        if (!uid) { setLoading(false); return; }
+        setUserId(uid);
+
+        const { data, error } = await supabase.from("guests").select("*").eq("user_id", uid).order("created_at");
         if (error) console.error("useGuests load error:", error);
         if (data) {
           setGuests(data.map((g: any) => ({
@@ -37,27 +40,23 @@ export function useGuests() {
   const addGuest = useCallback(async (guest: Omit<Guest, "id">) => {
     const tempId = Date.now();
     setGuests((prev) => [...prev, { ...guest, id: tempId }]);
-    if (isGuest) return;
+    if (!userId) return;
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data, error } = await supabase.from("guests").insert({
-          user_id: user.id, name: guest.name, side: guest.side,
-          relationship: guest.rel, attendance: guest.att,
-          meal: guest.meal, gift_amount: guest.gift,
-        }).select().single();
-        if (error) console.error("addGuest error:", error);
-        if (data) {
-          setGuests((prev) => prev.map((g) => g.id === tempId ? { ...g, id: data.id } : g));
-        }
+      const { data, error } = await supabase.from("guests").insert({
+        user_id: userId, name: guest.name, side: guest.side,
+        relationship: guest.rel, attendance: guest.att,
+        meal: guest.meal, gift_amount: guest.gift,
+      }).select().single();
+      if (error) console.error("addGuest error:", error);
+      if (data) {
+        setGuests((prev) => prev.map((g) => g.id === tempId ? { ...g, id: data.id } : g));
       }
     } catch (e) { console.error("addGuest exception:", e); }
-  }, [isGuest]);
+  }, [userId]);
 
   const updateGuest = useCallback(async (id: number | string, changes: Partial<Guest>) => {
     setGuests((prev) => prev.map((g) => g.id === id ? { ...g, ...changes } : g));
-    if (isGuest) return;
     try {
       const supabase = createClient();
       const updateData: Record<string, unknown> = {};
@@ -70,17 +69,16 @@ export function useGuests() {
       const { error } = await supabase.from("guests").update(updateData).eq("id", id);
       if (error) console.error("updateGuest error:", error);
     } catch (e) { console.error("updateGuest exception:", e); }
-  }, [isGuest]);
+  }, []);
 
   const deleteGuest = useCallback(async (id: number | string) => {
     setGuests((prev) => prev.filter((g) => g.id !== id));
-    if (isGuest) return;
     try {
       const supabase = createClient();
       const { error } = await supabase.from("guests").delete().eq("id", id);
       if (error) console.error("deleteGuest error:", error);
     } catch (e) { console.error("deleteGuest exception:", e); }
-  }, [isGuest]);
+  }, []);
 
   return { guests, loading, addGuest, updateGuest, deleteGuest };
 }

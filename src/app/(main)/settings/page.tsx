@@ -1,26 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { Field } from "@/components/ui/field";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SettingsPage() {
-  const router = useRouter();
   const [profile, setProfile] = useState({
     name: "", bride_name: "", groom_name: "",
     wedding_date: "", couple_message: "",
   });
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     async function load() {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      const { data } = await supabase.from("profiles").select("*").limit(1).maybeSingle();
       if (data) {
+        setProfileId(data.id);
         setProfile({
           name: data.name || "",
           bride_name: data.bride_name || "",
@@ -34,19 +32,11 @@ export default function SettingsPage() {
   }, []);
 
   const handleSave = async () => {
+    if (!profileId) return;
     setSaving(true);
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase.from("profiles").update(profile).eq("id", user.id);
+    await supabase.from("profiles").update(profile).eq("id", profileId);
     setSaving(false);
-  };
-
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
   };
 
   return (
@@ -78,10 +68,6 @@ export default function SettingsPage() {
 
         <button onClick={handleSave} disabled={saving} className="btn-primary w-full mt-2 disabled:opacity-50">
           {saving ? "저장 중..." : "저장"}
-        </button>
-
-        <button onClick={handleLogout} className="btn-ghost w-full text-red-400 mt-4">
-          로그아웃
         </button>
       </div>
     </>

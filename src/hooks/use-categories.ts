@@ -10,19 +10,22 @@ export function useCategories() {
   const [categoryDbIds, setCategoryDbIds] = useState<Record<string, string>>({});
   const [paymentDbIds, setPaymentDbIds] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
-  const [isGuest, setIsGuest] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setIsGuest(true); setLoading(false); return; }
+        // 첫 번째 프로필의 user_id를 기준으로 조회
+        const { data: profile } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
+        const uid = profile?.id;
+        if (!uid) { setLoading(false); return; }
+        setUserId(uid);
 
         const { data: cats, error } = await supabase
           .from("categories")
           .select("*, category_fields(*), payments(*)")
-          .eq("user_id", user.id);
+          .eq("user_id", uid);
 
         if (error) console.error("useCategories load error:", error);
 
@@ -80,7 +83,6 @@ export function useCategories() {
           setCategoryDbIds(idMap);
           setPaymentDbIds(pIdMap);
         }
-        // If cats is empty, keep MOCK_CATEGORIES as fallback
       } catch (e) {
         console.error("useCategories exception:", e);
       }
@@ -111,7 +113,7 @@ export function useCategories() {
       [categoryType]: [...(prev[categoryType] || []), newField],
     }));
 
-    if (dbId && !isGuest) {
+    if (dbId) {
       try {
         const supabase = createClient();
         const { data: inserted, error } = await supabase.from("category_fields").insert({
@@ -136,7 +138,7 @@ export function useCategories() {
         }
       } catch (e) { console.error("addField exception:", e); }
     }
-  }, [categoryDbIds, fields, isGuest]);
+  }, [categoryDbIds, fields]);
 
   const updateField = useCallback(async (categoryType: string, fieldId: string, value: string) => {
     setFields((prev) => ({
@@ -145,26 +147,24 @@ export function useCategories() {
         f.id === fieldId ? { ...f, fieldValue: value } : f
       ),
     }));
-    if (isGuest) return;
     try {
       const supabase = createClient();
       const { error } = await supabase.from("category_fields").update({ field_value: value }).eq("id", fieldId);
       if (error) console.error("updateField error:", error);
     } catch (e) { console.error("updateField exception:", e); }
-  }, [isGuest]);
+  }, []);
 
   const deleteField = useCallback(async (categoryType: string, fieldId: string) => {
     setFields((prev) => ({
       ...prev,
       [categoryType]: (prev[categoryType] || []).filter((f) => f.id !== fieldId),
     }));
-    if (isGuest) return;
     try {
       const supabase = createClient();
       const { error } = await supabase.from("category_fields").delete().eq("id", fieldId);
       if (error) console.error("deleteField error:", error);
     } catch (e) { console.error("deleteField exception:", e); }
-  }, [isGuest]);
+  }, []);
 
   const updateCategory = useCallback(async (
     categoryType: string,
@@ -177,7 +177,6 @@ export function useCategories() {
       ...prev,
       [categoryType]: { ...prev[categoryType], ...updates },
     }));
-    if (isGuest) return;
     const dbId = categoryDbIds[categoryType];
     if (dbId) {
       try {
@@ -196,7 +195,7 @@ export function useCategories() {
         if (error) console.error("updateCategory error:", error);
       } catch (e) { console.error("updateCategory exception:", e); }
     }
-  }, [categoryDbIds, isGuest]);
+  }, [categoryDbIds]);
 
   const addPayment = useCallback(async (
     categoryType: string,
@@ -210,7 +209,6 @@ export function useCategories() {
       ...prev,
       [categoryType]: { ...prev[categoryType], payments: newPayments },
     }));
-    if (isGuest) return;
     const dbId = categoryDbIds[categoryType];
     if (dbId) {
       try {
@@ -232,7 +230,7 @@ export function useCategories() {
         }
       } catch (e) { console.error("addPayment exception:", e); }
     }
-  }, [categories, categoryDbIds, isGuest]);
+  }, [categories, categoryDbIds]);
 
   const togglePayment = useCallback(async (categoryType: string, paymentIndex: number) => {
     const cat = categories[categoryType];
@@ -249,7 +247,6 @@ export function useCategories() {
       [categoryType]: { ...prev[categoryType], payments: newPayments },
     }));
 
-    if (isGuest) return;
     const dbPaymentId = paymentDbIds[categoryType]?.[paymentIndex];
     if (dbPaymentId) {
       try {
@@ -261,7 +258,7 @@ export function useCategories() {
         if (error) console.error("togglePayment error:", error);
       } catch (e) { console.error("togglePayment exception:", e); }
     }
-  }, [categories, paymentDbIds, isGuest]);
+  }, [categories, paymentDbIds]);
 
   return { categories, fields, loading, addField, updateField, deleteField, updateCategory, addPayment, togglePayment };
 }

@@ -7,15 +7,18 @@ import type { CalendarEvent, CategoryType } from "@/types";
 export function useEvents() {
   const [events, setEvents] = useState<CalendarEvent[]>(MOCK_EVENTS);
   const [loading, setLoading] = useState(true);
-  const [isGuest, setIsGuest] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setIsGuest(true); setLoading(false); return; }
-        const { data, error } = await supabase.from("events").select("*").eq("user_id", user.id).order("date");
+        const { data: profile } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
+        const uid = profile?.id;
+        if (!uid) { setLoading(false); return; }
+        setUserId(uid);
+
+        const { data, error } = await supabase.from("events").select("*").eq("user_id", uid).order("date");
         if (error) console.error("useEvents load error:", error);
         if (data) {
           setEvents(data.map((e: any) => ({
@@ -35,35 +38,31 @@ export function useEvents() {
   const addEvent = useCallback(async (event: Omit<CalendarEvent, "id">) => {
     const tempId = Date.now();
     setEvents((prev) => [...prev, { ...event, id: tempId }]);
-    if (isGuest) return;
+    if (!userId) return;
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data, error } = await supabase.from("events").insert({
-          user_id: user.id,
-          title: event.title,
-          date: event.date,
-          time: event.time,
-          category_type: event.cat,
-        }).select().single();
-        if (error) console.error("addEvent error:", error);
-        if (data) {
-          setEvents((prev) => prev.map((e) => e.id === tempId ? { ...e, id: data.id } : e));
-        }
+      const { data, error } = await supabase.from("events").insert({
+        user_id: userId,
+        title: event.title,
+        date: event.date,
+        time: event.time,
+        category_type: event.cat,
+      }).select().single();
+      if (error) console.error("addEvent error:", error);
+      if (data) {
+        setEvents((prev) => prev.map((e) => e.id === tempId ? { ...e, id: data.id } : e));
       }
     } catch (e) { console.error("addEvent exception:", e); }
-  }, [isGuest]);
+  }, [userId]);
 
   const deleteEvent = useCallback(async (id: number | string) => {
     setEvents((prev) => prev.filter((e) => e.id !== id));
-    if (isGuest) return;
     try {
       const supabase = createClient();
       const { error } = await supabase.from("events").delete().eq("id", id);
       if (error) console.error("deleteEvent error:", error);
     } catch (e) { console.error("deleteEvent exception:", e); }
-  }, [isGuest]);
+  }, []);
 
   return { events, loading, addEvent, deleteEvent };
 }

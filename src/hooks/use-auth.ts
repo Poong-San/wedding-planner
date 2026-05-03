@@ -1,23 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
-
+// 인증 비활성화 — 더 이상 사용하지 않음
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    try {
-      const supabase = createClient();
-      supabase.auth.getUser().then(({ data }) => {
-        setUser(data.user);
-        setLoading(false);
-      }).catch(() => setLoading(false));
-    } catch {
-      setLoading(false);
-    }
-  }, []);
-
-  return { user, loading };
+  return { user: null, loading: false };
 }

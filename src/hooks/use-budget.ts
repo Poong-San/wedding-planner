@@ -12,9 +12,11 @@ export function useBudget() {
     async function load() {
       try {
         const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { setLoading(false); return; }
-        const { data, error } = await supabase.from("budgets").select("*").eq("user_id", user.id).single();
+        const { data: profile } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
+        const uid = profile?.id;
+        if (!uid) { setLoading(false); return; }
+
+        const { data, error } = await supabase.from("budgets").select("*").eq("user_id", uid).maybeSingle();
         if (error && error.code !== "PGRST116") console.error("useBudget load error:", error);
         if (data) {
           setBudget({ total: data.total_budget || 0 });
