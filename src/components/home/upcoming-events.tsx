@@ -2,12 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { CATEGORY_LABELS } from "@/lib/constants";
-import { parseDate, formatTime } from "@/lib/utils";
+import { parseDate, formatTime, daysUntil } from "@/lib/utils";
 import type { CalendarEvent } from "@/types";
 
 interface UpcomingEventsProps {
   events: CalendarEvent[];
   onEventClick?: (eventId: number | string) => void;
+}
+
+function getUrgencyStyle(date: string) {
+  const days = daysUntil(date);
+  if (days <= 3) return { border: "border-red-200", bg: "bg-red-50", dateColor: "text-red-600", dot: "bg-red-500" };
+  if (days <= 7) return { border: "border-orange-200", bg: "bg-orange-50", dateColor: "text-orange-600", dot: "bg-orange-400" };
+  if (days <= 14) return { border: "border-yellow-200", bg: "bg-yellow-50", dateColor: "text-yellow-700", dot: "bg-yellow-400" };
+  return { border: "border-green-200", bg: "bg-green-50/50", dateColor: "text-green-700", dot: "bg-green-400" };
 }
 
 export function UpcomingEvents({ events, onEventClick }: UpcomingEventsProps) {
@@ -32,18 +40,22 @@ export function UpcomingEvents({ events, onEventClick }: UpcomingEventsProps) {
         ) : (
           events.map((e) => {
             const { month, day } = parseDate(e.date);
+            const urgency = getUrgencyStyle(e.date);
             return (
               <div
                 key={e.id}
-                className="card flex items-center gap-3.5 p-3.5 cursor-pointer"
+                className={`rounded-xl border p-3.5 flex items-center gap-3.5 cursor-pointer ${urgency.border} ${urgency.bg}`}
                 onClick={() => onEventClick?.(e.id)}
               >
-                <div className="w-12 text-center border-r border-ink-200 pr-3.5">
+                <div className="w-12 text-center pr-3.5 border-r border-ink-200/50">
                   <div className="text-[10px] text-ink-500">{month}월</div>
-                  <div className="text-lg font-bold text-green-700">{day}</div>
+                  <div className={`text-lg font-bold ${urgency.dateColor}`}>{day}</div>
                 </div>
                 <div className="flex-1">
-                  <div className="text-[13px] font-semibold mb-0.5">{e.title}</div>
+                  <div className="text-[13px] font-semibold mb-0.5 flex items-center gap-1.5">
+                    <span className={`w-1.5 h-1.5 rounded-full ${urgency.dot}`} />
+                    {e.title}
+                  </div>
                   <div className="text-[11px] text-ink-500">
                     {formatTime(e.time) || "시간 미정"} · {CATEGORY_LABELS[e.cat] || ""}
                   </div>
