@@ -2,11 +2,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { uploadImage } from "@/lib/upload";
-import { MOCK_CATEGORIES } from "@/lib/mock-data";
 import type { Category, CategoryField, CategoryStatus, FieldType, Payment } from "@/types";
 
 export function useCategories() {
-  const [categories, setCategories] = useState<Record<string, Category>>(MOCK_CATEGORIES);
+  const [categories, setCategories] = useState<Record<string, Category>>({});
   const [fields, setFields] = useState<Record<string, CategoryField[]>>({});
   const [categoryDbIds, setCategoryDbIds] = useState<Record<string, string>>({});
   const [paymentDbIds, setPaymentDbIds] = useState<Record<string, string[]>>({});

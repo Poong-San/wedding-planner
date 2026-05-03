@@ -1,11 +1,10 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { MOCK_EVENTS } from "@/lib/mock-data";
 import type { CalendarEvent, CategoryType } from "@/types";
 
 export function useEvents() {
-  const [events, setEvents] = useState<CalendarEvent[]>(MOCK_EVENTS);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 

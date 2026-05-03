@@ -1,11 +1,10 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { MOCK_CHECKLIST } from "@/lib/mock-data";
 import type { ChecklistItem } from "@/types";
 
 export function useChecklist() {
-  const [checklist, setChecklist] = useState<ChecklistItem[]>(MOCK_CHECKLIST);
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

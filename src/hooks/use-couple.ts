@@ -2,11 +2,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { uploadImage } from "@/lib/upload";
-import { MOCK_COUPLE } from "@/lib/mock-data";
 import type { CoupleInfo } from "@/types";
 
 export function useCouple() {
-  const [couple, setCouple] = useState<CoupleInfo>(MOCK_COUPLE);
+  const [couple, setCouple] = useState<CoupleInfo>({ bride: "", groom: "", weddingDate: "", message: "" });
   const [heroImage, setHeroImage] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

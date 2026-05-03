@@ -1,11 +1,10 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { MOCK_GUESTS } from "@/lib/mock-data";
 import type { Guest } from "@/types";
 
 export function useGuests() {
-  const [guests, setGuests] = useState<Guest[]>(MOCK_GUESTS);
+  const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 
