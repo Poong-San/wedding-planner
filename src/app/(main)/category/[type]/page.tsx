@@ -69,7 +69,7 @@ function GuestsView() {
 
 export default function CategoryPage({ params }: { params: Promise<{ type: string }> }) {
   const { type } = use(params);
-  const { categories, fields, addField, updateField, deleteField, updateCategory, addPayment, togglePayment } = useCategories();
+  const { categories, fields, loading, addField, updateField, deleteField, updateCategory, addPayment, togglePayment } = useCategories();
   const { events } = useEvents();
 
   const [editingField, setEditingField] = useState<CategoryField | null>(null);
@@ -78,7 +78,17 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
   if (type === "guests") return <GuestsView />;
 
   const cat = categories[type as CategoryType];
-  if (!cat) return <div className="p-5"><p>카테고리를 찾을 수 없습니다.</p></div>;
+
+  if (loading || !cat) {
+    return (
+      <>
+        <CategoryHero name={cat?.name || type} />
+        <div className="flex items-center justify-center py-20">
+          <div className="text-[13px] text-ink-400">불러오는 중...</div>
+        </div>
+      </>
+    );
+  }
 
   const relatedEvents = events.filter((e) => e.cat === type).sort((a, b) => a.date.localeCompare(b.date));
   const categoryFields = fields[type] || [];
