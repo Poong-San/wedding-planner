@@ -47,11 +47,26 @@ export function FieldList({ fields, onFieldClick, onDelete }: FieldListProps) {
   );
 }
 
+// 금액이 아닌 숫자 필드 키 (명, 개, 분 등)
+const NON_CURRENCY_KEYS = new Set([
+  "guaranteed_guests", "parking_count", "ceremony_duration", "concurrent_ceremonies",
+  "edited_count", "edited_photo_count", "quantity", "size",
+]);
+
+// 인원 관련 키
+const PERSON_COUNT_KEYS = new Set([
+  "guaranteed_guests",
+]);
+
 function formatFieldValue(field: CategoryField): string {
   if (!field.fieldValue) return "-";
   if (field.fieldType === "number") {
     const num = Number(field.fieldValue);
-    if (num >= 10000) return `${Math.round(num / 10000).toLocaleString()}만원`;
+    if (PERSON_COUNT_KEYS.has(field.fieldKey)) return `${num.toLocaleString()}명`;
+    if (NON_CURRENCY_KEYS.has(field.fieldKey)) return num.toLocaleString();
+    // 금액: 정확한 표시
+    if (num >= 100000000) return `${(num / 100000000).toFixed(1).replace(/\.0$/, "")}억원`;
+    if (num >= 10000) return `${(num / 10000).toLocaleString(undefined, { maximumFractionDigits: 1 })}만원`;
     return num.toLocaleString() + (num > 0 ? "원" : "");
   }
   if (field.fieldType === "boolean") return field.fieldValue === "true" ? "예" : "아니오";
