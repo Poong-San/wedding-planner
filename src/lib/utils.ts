@@ -30,3 +30,9 @@ export function parseDate(dateStr: string): { month: string; day: string } {
   const parts = dateStr.split("-");
   return { month: String(Number(parts[1])), day: parts[2] };
 }
+
+/** 시간 포맷: "14:00:00" → "14:00" */
+export function formatTime(time: string | null): string {
+  if (!time) return "";
+  return time.slice(0, 5);
+}

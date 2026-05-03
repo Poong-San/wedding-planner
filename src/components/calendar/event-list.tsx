@@ -1,4 +1,5 @@
 import { CATEGORY_LABELS } from "@/lib/constants";
+import { formatTime } from "@/lib/utils";
 import type { CalendarEvent } from "@/types";
 
 interface EventListProps {
@@ -31,7 +32,7 @@ export function EventList({ date, events, onEventClick }: EventListProps) {
             <div className="flex-1">
               <div className="text-[13px] font-semibold">{e.title}</div>
               <div className="text-[11px] text-ink-500 mt-0.5">
-                {e.time || "시간 미정"} · {CATEGORY_LABELS[e.cat] || ""}
+                {formatTime(e.time) || "시간 미정"} · {CATEGORY_LABELS[e.cat] || ""}
               </div>
             </div>
           </div>

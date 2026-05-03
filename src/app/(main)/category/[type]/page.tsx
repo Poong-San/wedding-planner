@@ -21,6 +21,7 @@ import { useCategories } from "@/hooks/use-categories";
 import { useGuests } from "@/hooks/use-guests";
 import { useEvents } from "@/hooks/use-events";
 import { STATUS_LABELS, getStatusChipClass } from "@/lib/constants";
+import { formatTime } from "@/lib/utils";
 import type { CategoryType, CategoryField, FieldDefinition, FieldType } from "@/types";
 
 function GuestsView() {
@@ -121,7 +122,7 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
 
   return (
     <>
-      <CategoryHero name={cat.name} />
+      <CategoryHero name={cat.name} categoryType={type} />
 
       <div className="pb-[90px]">
         <div className="px-5 pt-[18px] pb-1">
@@ -146,7 +147,7 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
           )}
         </div>
 
-        <ProgressStepper status={cat.status} />
+        <ProgressStepper status={cat.status} onStatusChange={(newStatus) => updateCategory(type, { status: newStatus })} />
         <InfoCards category={cat} />
 
         {cat.contact && cat.contact !== "-" && (
@@ -175,7 +176,7 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
           </button>
         </div>
 
-        <CategoryInfo category={cat} />
+        <CategoryInfo category={cat} onEdit={() => setShowCategoryEdit(true)} />
 
         {/* 유연한 필드 목록 */}
         <FieldList
@@ -206,7 +207,7 @@ export default function CategoryPage({ params }: { params: Promise<{ type: strin
                   <div className="text-sm font-bold">{e.date.slice(8)}</div>
                 </div>
                 <div className="flex-1 text-xs font-medium">{e.title}</div>
-                <div className="text-[11px] text-ink-500">{e.time}</div>
+                <div className="text-[11px] text-ink-500">{formatTime(e.time)}</div>
               </div>
             ))}
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { daysUntil } from "@/lib/utils";
 import { CoupleEditModal } from "@/components/modals/couple-edit-modal";
 import type { CoupleInfo } from "@/types";
@@ -14,22 +14,61 @@ interface HeroSectionProps {
 export function HeroSection({ couple, onUpdateCouple, onUpdateMessage }: HeroSectionProps) {
   const dday = daysUntil(couple.weddingDate);
   const [showEdit, setShowEdit] = useState(false);
+  const [heroImage, setHeroImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("hero_image");
+    if (saved) setHeroImage(saved);
+  }, []);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setHeroImage(dataUrl);
+      localStorage.setItem("hero_image", dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = (updates: Partial<CoupleInfo>) => {
     onUpdateCouple?.(updates);
     if (updates.message) onUpdateMessage?.(updates.message);
   };
 
+  const stripedBg = "repeating-linear-gradient(45deg, #f5e8e0, #f5e8e0 8px, #fdf9f3 8px, #fdf9f3 16px)";
+
   return (
     <div className="px-4">
       <div
         className="h-[280px] rounded-[20px] relative border border-green-200 overflow-hidden"
-        style={{
-          background: "repeating-linear-gradient(45deg, #f5e8e0, #f5e8e0 8px, #fdf9f3 8px, #fdf9f3 16px)",
-        }}
+        style={
+          heroImage
+            ? { backgroundImage: `url(${heroImage})`, backgroundSize: "cover", backgroundPosition: "center" }
+            : { background: stripedBg }
+        }
       >
         <div className="absolute inset-0 rounded-[20px]"
           style={{ background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.45) 100%)" }}
+        />
+
+        {/* 이미지 업로드 버튼 */}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="absolute top-3.5 left-3.5 bg-white/85 w-8 h-8 rounded-full flex items-center justify-center text-[14px] border-none cursor-pointer"
+          aria-label="히어로 이미지 업로드"
+        >
+          📷
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageUpload}
         />
 
         {/* 편집 버튼 */}

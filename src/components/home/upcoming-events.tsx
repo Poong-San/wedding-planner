@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { CATEGORY_LABELS } from "@/lib/constants";
-import { parseDate } from "@/lib/utils";
+import { parseDate, formatTime } from "@/lib/utils";
 import type { CalendarEvent } from "@/types";
 
 interface UpcomingEventsProps {
@@ -25,27 +25,33 @@ export function UpcomingEvents({ events, onEventClick }: UpcomingEventsProps) {
         </span>
       </h3>
       <div className="flex flex-col gap-2">
-        {events.map((e) => {
-          const { month, day } = parseDate(e.date);
-          return (
-            <div
-              key={e.id}
-              className="card flex items-center gap-3.5 p-3.5 cursor-pointer"
-              onClick={() => onEventClick?.(e.id)}
-            >
-              <div className="w-12 text-center border-r border-ink-200 pr-3.5">
-                <div className="text-[10px] text-ink-500">{month}월</div>
-                <div className="text-lg font-bold text-green-700">{day}</div>
-              </div>
-              <div className="flex-1">
-                <div className="text-[13px] font-semibold mb-0.5">{e.title}</div>
-                <div className="text-[11px] text-ink-500">
-                  {e.time || "시간 미정"} · {CATEGORY_LABELS[e.cat] || ""}
+        {events.length === 0 ? (
+          <div className="py-8 text-center text-[13px] text-ink-400">
+            예정된 일정이 없어요
+          </div>
+        ) : (
+          events.map((e) => {
+            const { month, day } = parseDate(e.date);
+            return (
+              <div
+                key={e.id}
+                className="card flex items-center gap-3.5 p-3.5 cursor-pointer"
+                onClick={() => onEventClick?.(e.id)}
+              >
+                <div className="w-12 text-center border-r border-ink-200 pr-3.5">
+                  <div className="text-[10px] text-ink-500">{month}월</div>
+                  <div className="text-lg font-bold text-green-700">{day}</div>
+                </div>
+                <div className="flex-1">
+                  <div className="text-[13px] font-semibold mb-0.5">{e.title}</div>
+                  <div className="text-[11px] text-ink-500">
+                    {formatTime(e.time) || "시간 미정"} · {CATEGORY_LABELS[e.cat] || ""}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );
