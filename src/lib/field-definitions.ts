@@ -37,6 +37,13 @@ export const FIELD_DEFINITIONS: Partial<Record<CategoryType, FieldDefinition[]>>
     { key: "ceremony_included", label: "본식 메이크업 포함", type: "boolean" },
     { key: "memo", label: "메모", type: "textarea" },
   ],
+  hair_change: [
+    { key: "vendor", label: "업체명", type: "text" },
+    { key: "cost", label: "비용", type: "number" },
+    { key: "style", label: "헤어 스타일", type: "text" },
+    { key: "date", label: "시술 날짜", type: "date" },
+    { key: "memo", label: "메모", type: "textarea" },
+  ],
   invitation: [
     { key: "vendor", label: "업체명", type: "text" },
     { key: "design_type", label: "디자인 종류", type: "select", options: ["종이", "모바일", "둘 다"] },

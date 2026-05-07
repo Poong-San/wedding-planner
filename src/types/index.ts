@@ -3,7 +3,7 @@ export type CategoryType =
   // 웨딩홀 (단독)
   | "wedding_hall"
   // 스드메 세부
-  | "studio" | "dress" | "hair_makeup"
+  | "studio" | "dress" | "hair_makeup" | "hair_change"
   // 본식 세부
   | "invitation" | "video" | "mc" | "singer" | "guests" | "return_gift" | "meeting"
   // 혼수 세부
