@@ -1,28 +1,31 @@
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export default auth((req) => {
-  const { nextUrl, auth: session } = req as any;
-  const isLoggedIn = !!session;
-  const isLoginPage = nextUrl.pathname === "/login";
-  const isApiAuth = nextUrl.pathname.startsWith("/api/auth");
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-  // API auth 라우트는 항상 통과
-  if (isApiAuth) return NextResponse.next();
+  // 항상 통과
+  if (pathname.startsWith("/api/auth")) return NextResponse.next();
 
-  // 로그인 안 됐으면 /login으로
+  const isLoginPage = pathname === "/login";
+
+  // next-auth 세션 쿠키 확인 (Edge 호환 방식)
+  const sessionToken =
+    request.cookies.get("__Secure-next-auth.session-token")?.value ||
+    request.cookies.get("next-auth.session-token")?.value;
+
+  const isLoggedIn = !!sessionToken;
+
   if (!isLoggedIn && !isLoginPage) {
-    return NextResponse.redirect(new URL("/login", nextUrl));
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 이미 로그인됐는데 /login 접근하면 홈으로
   if (isLoggedIn && isLoginPage) {
-    return NextResponse.redirect(new URL("/", nextUrl));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
