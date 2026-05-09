@@ -9,10 +9,8 @@ export async function middleware(request: NextRequest) {
 
   const isLoginPage = pathname === "/login";
 
-  // next-auth 세션 쿠키 확인 (Edge 호환 방식)
-  const sessionToken =
-    request.cookies.get("__Secure-next-auth.session-token")?.value ||
-    request.cookies.get("next-auth.session-token")?.value;
+  // next-auth 세션 쿠키 확인 (쿠키 이름 통일)
+  const sessionToken = request.cookies.get("next-auth.session-token")?.value;
 
   const isLoggedIn = !!sessionToken;
 
