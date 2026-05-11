@@ -1,6 +1,7 @@
 "use client";
 
 import { PlusIcon } from "@/components/ui/icons";
+import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { DonutChart } from "@/components/budget/donut-chart";
 import { CategoryBars } from "@/components/budget/category-bars";
 import { getCategorySpent, formatManWon } from "@/lib/utils";
@@ -18,12 +19,14 @@ export default function BudgetPage() {
 
   return (
     <>
-      <div className="px-5 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-bold m-0">예산관리</h1>
-        <button className="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center border-none cursor-pointer">
-          <PlusIcon width={18} height={18} />
-        </button>
-      </div>
+      <PageHeaderWithMenu
+        title="예산관리"
+        right={
+          <button className="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center border-none cursor-pointer">
+            <PlusIcon width={18} height={18} />
+          </button>
+        }
+      />
 
       <div className="px-5 pb-[18px] text-center">
         <DonutChart percent={pct} used={used} total={total} />

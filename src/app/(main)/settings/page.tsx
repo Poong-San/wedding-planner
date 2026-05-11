@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PageHeader } from "@/components/layout/page-header";
+import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { Field } from "@/components/ui/field";
 import { createClient } from "@/lib/supabase/client";
 
@@ -41,7 +41,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="설정" onBack={false} />
+      <PageHeaderWithMenu title="설정" />
       <div className="px-5 pb-6 flex flex-col gap-4">
         <Field label="이름">
           <input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })}

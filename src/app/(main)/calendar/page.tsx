@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PlusIcon } from "@/components/ui/icons";
+import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { MonthGrid } from "@/components/calendar/month-grid";
 import { EventList } from "@/components/calendar/event-list";
 import { EventDetailModal } from "@/components/modals/event-detail-modal";
@@ -25,15 +26,17 @@ export default function CalendarPage() {
 
   return (
     <>
-      <div className="px-5 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-bold m-0">캘린더</h1>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center border-none cursor-pointer"
-        >
-          <PlusIcon width={18} height={18} />
-        </button>
-      </div>
+      <PageHeaderWithMenu
+        title="캘린더"
+        right={
+          <button
+            onClick={() => setShowAdd(true)}
+            className="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center border-none cursor-pointer"
+          >
+            <PlusIcon width={18} height={18} />
+          </button>
+        }
+      />
 
       <MonthGrid
         year={viewMonth.y} month={viewMonth.m}

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { SplashScreen } from "@/components/splash-screen";
+import { NextAuthSessionProvider } from "@/components/session-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -30,9 +31,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <body>
         <div className="mx-auto max-w-[480px] min-h-dvh bg-white relative">
-          <SplashScreen>
-            {children}
-          </SplashScreen>
+          <NextAuthSessionProvider>
+            <SplashScreen>
+              {children}
+            </SplashScreen>
+          </NextAuthSessionProvider>
         </div>
       </body>
     </html>

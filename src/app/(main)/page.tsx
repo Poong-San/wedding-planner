@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { BellIcon, MenuIcon } from "@/components/ui/icons";
+import { MenuDrawer } from "@/components/layout/menu-drawer";
 import { CategoryTabs } from "@/components/layout/category-tabs";
 import { HeroSection } from "@/components/home/hero-section";
 import { UpcomingEvents } from "@/components/home/upcoming-events";
@@ -10,6 +12,7 @@ import { useEvents } from "@/hooks/use-events";
 export default function HomePage() {
   const { couple, heroImage, updateCouple, updateMessage, uploadHeroImage } = useCouple();
   const { events } = useEvents();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const upcoming = events
     .filter((e) => new Date(e.date) >= new Date())
@@ -27,11 +30,15 @@ export default function HomePage() {
           <button className="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center border-none cursor-pointer">
             <BellIcon width={18} height={18} />
           </button>
-          <button className="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center border-none cursor-pointer">
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center border-none cursor-pointer"
+          >
             <MenuIcon width={18} height={18} />
           </button>
         </div>
       </div>
+      <MenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
 
       <CategoryTabs />
 

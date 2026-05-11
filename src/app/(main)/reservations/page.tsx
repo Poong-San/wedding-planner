@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FilterIcon, CheckIcon } from "@/components/ui/icons";
+import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { useCategories } from "@/hooks/use-categories";
 
@@ -26,12 +27,14 @@ export default function ReservationsPage() {
 
   return (
     <>
-      <div className="px-5 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-bold m-0">예약현황</h1>
-        <button className="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center border-none cursor-pointer">
-          <FilterIcon width={16} height={16} />
-        </button>
-      </div>
+      <PageHeaderWithMenu
+        title="예약현황"
+        right={
+          <button className="w-9 h-9 rounded-full bg-ink-100 flex items-center justify-center border-none cursor-pointer">
+            <FilterIcon width={16} height={16} />
+          </button>
+        }
+      />
 
       <div className="px-5 pb-3.5">
         <div className="card-soft">
