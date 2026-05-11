@@ -1,7 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import { Fraunces } from "next/font/google";
 import { SplashScreen } from "@/components/splash-screen";
 import { NextAuthSessionProvider } from "@/components/session-provider";
 import "./globals.css";
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  weight: ["400", "600", "700", "800"],
+});
 
 export const metadata: Metadata = {
   title: "숲인",
@@ -28,7 +35,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={fraunces.variable}>
       <body>
         <div className="mx-auto max-w-[480px] min-h-dvh bg-white relative">
           <NextAuthSessionProvider>

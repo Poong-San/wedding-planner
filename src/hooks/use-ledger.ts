@@ -3,6 +3,9 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { CategoryType } from "@/types";
 
+export type LedgerOwner = "groom" | "bride" | "shared";
+export type LedgerType = "income" | "expense" | "transfer";
+
 export interface LedgerEntry {
   id: string;
   categoryType: CategoryType | null;
@@ -10,6 +13,12 @@ export interface LedgerEntry {
   amount: number;
   date: string;
   memo: string;
+  owner: LedgerOwner;
+  type: LedgerType;
+  isRecurring: boolean;
+  recurringDay: number | null;
+  paymentMethod: string;
+  isPlanned: boolean;
 }
 
 export function useLedger() {
@@ -40,6 +49,12 @@ export function useLedger() {
             amount: e.amount,
             date: e.date,
             memo: e.memo || "",
+            owner: (e.owner || "shared") as LedgerOwner,
+            type: (e.type || "expense") as LedgerType,
+            isRecurring: e.is_recurring || false,
+            recurringDay: e.recurring_day || null,
+            paymentMethod: e.payment_method || "",
+            isPlanned: e.is_planned || false,
           })));
         }
       } catch (e) { console.error("useLedger exception:", e); }
@@ -61,6 +76,12 @@ export function useLedger() {
         amount: entry.amount,
         date: entry.date,
         memo: entry.memo,
+        owner: entry.owner,
+        type: entry.type,
+        is_recurring: entry.isRecurring,
+        recurring_day: entry.recurringDay,
+        payment_method: entry.paymentMethod,
+        is_planned: entry.isPlanned,
       }).select().single();
       if (error) console.error("addEntry error:", error);
       if (data) {
@@ -80,3 +101,22 @@ export function useLedger() {
 
   return { entries, loading, addEntry, deleteEntry };
 }
+
+// 유틸리티
+export const OWNER_LABELS: Record<LedgerOwner, string> = {
+  groom: "민준 (신랑)",
+  bride: "지영 (신부)",
+  shared: "공동",
+};
+
+export const OWNER_SHORT: Record<LedgerOwner, string> = {
+  groom: "신랑",
+  bride: "신부",
+  shared: "공동",
+};
+
+export const OWNER_COLORS: Record<LedgerOwner, { text: string; bg: string; border: string; dot: string }> = {
+  groom: { text: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200", dot: "bg-blue-500" },
+  bride: { text: "text-rose-600", bg: "bg-rose-50", border: "border-rose-200", dot: "bg-rose-500" },
+  shared: { text: "text-green-600", bg: "bg-green-50", border: "border-green-200", dot: "bg-green-500" },
+};

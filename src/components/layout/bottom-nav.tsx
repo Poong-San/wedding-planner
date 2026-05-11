@@ -10,8 +10,8 @@ const NAV_ITEMS = [
   { id: "home", path: "/", label: "홈", Icon: HomeIcon },
   { id: "calendar", path: "/calendar", label: "캘린더", Icon: CalendarIcon },
   { id: "reservations", path: "/reservations", label: "예약현황", Icon: ClipboardIcon },
-  { id: "ledger", path: "/ledger", label: "가계부", Icon: WalletIcon },
   { id: "checklist", path: "/checklist", label: "체크리스트", Icon: CheckIcon },
+  { id: "ledger", path: "/ledger", label: "가계부", Icon: WalletIcon },
 ];
 
 export function BottomNav() {

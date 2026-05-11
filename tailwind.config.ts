@@ -34,6 +34,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['"Noto Sans KR"', "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        serif: ['var(--font-fraunces)', "Georgia", "serif"],
       },
     },
   },
