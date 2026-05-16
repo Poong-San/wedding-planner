@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getCurrentUserId } from "@/lib/supabase/current-user";
+import { getSharedDataProfileId } from "@/lib/supabase/current-user";
 
 export type LedgerOwner = "groom" | "bride" | "shared";
 export type LedgerType = "income" | "expense" | "transfer";
@@ -45,7 +45,7 @@ export function useLedger() {
     async function load() {
       try {
         const supabase = createClient();
-        const uid = await getCurrentUserId(supabase);
+        const uid = await getSharedDataProfileId(supabase);
         if (!uid) { setLoading(false); return; }
         setUserId(uid);
 

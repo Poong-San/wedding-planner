@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getCurrentUserId } from "@/lib/supabase/current-user";
+import { getSharedDataProfileId } from "@/lib/supabase/current-user";
 import type { ChecklistItem } from "@/types";
 
 interface ChecklistRow {
@@ -19,7 +19,7 @@ export function useChecklist() {
     async function load() {
       try {
         const supabase = createClient();
-        const uid = await getCurrentUserId(supabase);
+        const uid = await getSharedDataProfileId(supabase);
         if (!uid) { setLoading(false); return; }
 
         const { data, error } = await supabase.from("checklist_items").select("*").eq("user_id", uid).order("sort_order");

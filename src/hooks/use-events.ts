@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getCurrentUserId } from "@/lib/supabase/current-user";
+import { getSharedDataProfileId } from "@/lib/supabase/current-user";
 import type { CalendarEvent, CategoryType } from "@/types";
 
 interface EventRow {
@@ -21,7 +21,7 @@ export function useEvents() {
     async function load() {
       try {
         const supabase = createClient();
-        const uid = await getCurrentUserId(supabase);
+        const uid = await getSharedDataProfileId(supabase);
         if (!uid) { setLoading(false); return; }
         setUserId(uid);
 

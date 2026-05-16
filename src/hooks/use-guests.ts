@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getCurrentUserId } from "@/lib/supabase/current-user";
+import { getSharedDataProfileId } from "@/lib/supabase/current-user";
 import type { AttendanceStatus, Guest, GuestSide } from "@/types";
 
 interface GuestRow {
@@ -23,7 +23,7 @@ export function useGuests() {
     async function load() {
       try {
         const supabase = createClient();
-        const uid = await getCurrentUserId(supabase);
+        const uid = await getSharedDataProfileId(supabase);
         if (!uid) { setLoading(false); return; }
         setUserId(uid);
 

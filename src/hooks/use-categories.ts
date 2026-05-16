@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getCurrentUserId } from "@/lib/supabase/current-user";
+import { getSharedDataProfileId } from "@/lib/supabase/current-user";
 import { uploadImage } from "@/lib/upload";
 import type { Category, CategoryField, CategoryStatus, CategoryType, FieldType, Payment } from "@/types";
 
@@ -56,7 +56,7 @@ export function useCategories() {
     async function load() {
       try {
         const supabase = createClient();
-        const uid = await getCurrentUserId(supabase);
+        const uid = await getSharedDataProfileId(supabase);
         if (!uid) { setLoading(false); return; }
 
         const { data: cats, error } = await supabase
