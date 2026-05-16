@@ -6,6 +6,7 @@ import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { LedgerSubNav } from "@/components/ledger/ledger-sub-nav";
 import { LedgerAddModal } from "@/components/modals/ledger-add-modal";
 import { useLedger, OWNER_COLORS, OWNER_SHORT } from "@/hooks/use-ledger";
+import { getLedgerExpenseByOwner, getLedgerMonthSummary, getMonthKey } from "@/lib/ledger-utils";
 import type { LedgerOwner } from "@/hooks/use-ledger";
 
 export default function LedgerHomePage() {
@@ -14,17 +15,11 @@ export default function LedgerHomePage() {
 
   // 이번 달 필터
   const now = new Date();
-  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const thisMonth = entries.filter((e) => e.date.startsWith(ym));
-
-  const totalIncome = thisMonth.filter((e) => e.type === "income").reduce((s, e) => s + e.amount, 0);
-  const totalExpense = thisMonth.filter((e) => e.type === "expense").reduce((s, e) => s + e.amount, 0);
-  const balance = totalIncome - totalExpense;
+  const ym = getMonthKey(now);
+  const { entries: thisMonth, income: totalIncome, expense: totalExpense, balance } = getLedgerMonthSummary(entries, ym);
 
   // owner별 지출
-  const byOwner = (owner: LedgerOwner) => thisMonth
-    .filter((e) => e.owner === owner && e.type === "expense")
-    .reduce((s, e) => s + e.amount, 0);
+  const byOwner = (owner: LedgerOwner) => getLedgerExpenseByOwner(thisMonth, owner);
 
   const groomExp = byOwner("groom");
   const brideExp = byOwner("bride");

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isEmailAllowed, parseAllowedEmails } from "@/lib/auth/allowed-emails";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -29,10 +30,20 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") ||
                      request.nextUrl.pathname.startsWith("/signup");
+  const allowedEmails = parseAllowedEmails(process.env.ALLOWED_EMAILS);
+  const isAllowedUser = isEmailAllowed(user?.email, allowedEmails);
 
   if (!user && !isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  if (user && !isAllowedUser) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("error", "unauthorized");
+    if (isAuthPage) return supabaseResponse;
     return NextResponse.redirect(url);
   }
 

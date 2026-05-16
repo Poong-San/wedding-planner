@@ -1,8 +1,48 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentUserId } from "@/lib/supabase/current-user";
 import { uploadImage } from "@/lib/upload";
-import type { Category, CategoryField, CategoryStatus, FieldType, Payment } from "@/types";
+import type { Category, CategoryField, CategoryStatus, CategoryType, FieldType, Payment } from "@/types";
+
+interface PaymentRow {
+  id: string;
+  label: string;
+  amount: number;
+  date: string | null;
+  done: boolean | null;
+  sort_order: number | null;
+}
+
+interface CategoryFieldRow {
+  id: string;
+  category_id: string;
+  field_key: string;
+  field_label: string;
+  field_value: string | null;
+  field_type: FieldType | null;
+  field_options: string | null;
+  is_custom: boolean | null;
+  sort_order: number | null;
+}
+
+interface CategoryRow {
+  id: string;
+  type: CategoryType;
+  name: string;
+  vendor: string | null;
+  manager: string | null;
+  contact: string | null;
+  address: string | null;
+  total: number | null;
+  event_date: string | null;
+  event_time: string | null;
+  status: CategoryStatus;
+  notes: string | null;
+  image_url?: string | null;
+  payments?: PaymentRow[] | null;
+  category_fields?: CategoryFieldRow[] | null;
+}
 
 export function useCategories() {
   const [categories, setCategories] = useState<Record<string, Category>>({});
@@ -11,17 +51,13 @@ export function useCategories() {
   const [paymentDbIds, setPaymentDbIds] = useState<Record<string, string[]>>({});
   const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
         const supabase = createClient();
-        // 첫 번째 프로필의 user_id를 기준으로 조회
-        const { data: profile } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
-        const uid = profile?.id;
+        const uid = await getCurrentUserId(supabase);
         if (!uid) { setLoading(false); return; }
-        setUserId(uid);
 
         const { data: cats, error } = await supabase
           .from("categories")
@@ -37,18 +73,18 @@ export function useCategories() {
           const pIdMap: Record<string, string[]> = {};
           const imgMap: Record<string, string> = {};
 
-          cats.forEach((c: any) => {
+          (cats as CategoryRow[]).forEach((c) => {
             const sortedPayments = (c.payments || [])
-              .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0));
+              .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
-            const payments: Payment[] = sortedPayments.map((p: any) => ({
+            const payments: Payment[] = sortedPayments.map((p) => ({
               label: p.label,
               amount: p.amount,
               date: p.date || "",
               done: p.done || false,
             }));
 
-            pIdMap[c.type] = sortedPayments.map((p: any) => p.id);
+            pIdMap[c.type] = sortedPayments.map((p) => p.id);
 
             catMap[c.type] = {
               type: c.type,
@@ -67,7 +103,7 @@ export function useCategories() {
             idMap[c.type] = c.id;
             if (c.image_url) imgMap[c.type] = c.image_url;
             fieldMap[c.type] = (c.category_fields || [])
-              .map((f: any) => ({
+              .map((f) => ({
                 id: f.id,
                 categoryId: f.category_id,
                 fieldKey: f.field_key,

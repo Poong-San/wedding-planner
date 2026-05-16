@@ -1,7 +1,15 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentUserId } from "@/lib/supabase/current-user";
 import type { ChecklistItem } from "@/types";
+
+interface ChecklistRow {
+  id: string;
+  timeline: string;
+  title: string;
+  is_completed: boolean | null;
+}
 
 export function useChecklist() {
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
@@ -11,18 +19,17 @@ export function useChecklist() {
     async function load() {
       try {
         const supabase = createClient();
-        const { data: profile } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
-        const uid = profile?.id;
+        const uid = await getCurrentUserId(supabase);
         if (!uid) { setLoading(false); return; }
 
         const { data, error } = await supabase.from("checklist_items").select("*").eq("user_id", uid).order("sort_order");
         if (error) console.error("useChecklist load error:", error);
         if (data && data.length > 0) {
-          setChecklist(data.map((c: any) => ({
+          setChecklist((data as ChecklistRow[]).map((c) => ({
             id: c.id,
             timeline: c.timeline,
             title: c.title,
-            done: c.is_completed,
+            done: c.is_completed || false,
           })));
         }
       } catch (e) { console.error("useChecklist exception:", e); }

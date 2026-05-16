@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { Field } from "@/components/ui/field";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentUserId } from "@/lib/supabase/current-user";
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState({
@@ -16,7 +17,9 @@ export default function SettingsPage() {
   useEffect(() => {
     async function load() {
       const supabase = createClient();
-      const { data } = await supabase.from("profiles").select("*").limit(1).maybeSingle();
+      const uid = await getCurrentUserId(supabase);
+      if (!uid) return;
+      const { data } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
       if (data) {
         setProfileId(data.id);
         setProfile({

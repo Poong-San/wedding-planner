@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { daysUntil } from "@/lib/utils";
 import { CoupleEditModal } from "@/components/modals/couple-edit-modal";
 import type { CoupleInfo } from "@/types";

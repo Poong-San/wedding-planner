@@ -1,7 +1,16 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentUserId } from "@/lib/supabase/current-user";
 import type { CalendarEvent, CategoryType } from "@/types";
+
+interface EventRow {
+  id: string;
+  date: string;
+  time: string | null;
+  title: string;
+  category_type: CategoryType | null;
+}
 
 export function useEvents() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -12,20 +21,19 @@ export function useEvents() {
     async function load() {
       try {
         const supabase = createClient();
-        const { data: profile } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
-        const uid = profile?.id;
+        const uid = await getCurrentUserId(supabase);
         if (!uid) { setLoading(false); return; }
         setUserId(uid);
 
         const { data, error } = await supabase.from("events").select("*").eq("user_id", uid).order("date");
         if (error) console.error("useEvents load error:", error);
         if (data) {
-          setEvents(data.map((e: any) => ({
+          setEvents((data as EventRow[]).map((e) => ({
             id: e.id,
             date: e.date,
             time: e.time,
             title: e.title,
-            cat: e.category_type as CategoryType,
+            cat: e.category_type || "wedding_hall",
           })));
         }
       } catch (e) { console.error("useEvents exception:", e); }

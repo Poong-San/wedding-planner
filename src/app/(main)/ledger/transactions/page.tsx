@@ -6,7 +6,7 @@ import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { LedgerSubNav } from "@/components/ledger/ledger-sub-nav";
 import { LedgerAddModal } from "@/components/modals/ledger-add-modal";
 import { useLedger, OWNER_COLORS, OWNER_SHORT } from "@/hooks/use-ledger";
-import type { LedgerOwner, LedgerType } from "@/hooks/use-ledger";
+import type { LedgerOwner } from "@/hooks/use-ledger";
 
 type OwnerFilter = "all" | LedgerOwner;
 type TypeFilter = "all" | "income" | "expense";

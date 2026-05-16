@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentUserId } from "@/lib/supabase/current-user";
 import { uploadImage } from "@/lib/upload";
 import type { CoupleInfo } from "@/types";
 
@@ -14,7 +15,9 @@ export function useCouple() {
     async function load() {
       try {
         const supabase = createClient();
-        const { data } = await supabase.from("profiles").select("*").limit(1).maybeSingle();
+        const uid = await getCurrentUserId(supabase);
+        if (!uid) { setLoading(false); return; }
+        const { data } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
         if (data) {
           setProfileId(data.id);
           setCouple({

@@ -1,7 +1,18 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Guest } from "@/types";
+import { getCurrentUserId } from "@/lib/supabase/current-user";
+import type { AttendanceStatus, Guest, GuestSide } from "@/types";
+
+interface GuestRow {
+  id: string;
+  name: string;
+  side: GuestSide;
+  relationship: string | null;
+  attendance: AttendanceStatus | null;
+  meal: boolean | null;
+  gift_amount: number | null;
+}
 
 export function useGuests() {
   const [guests, setGuests] = useState<Guest[]>([]);
@@ -12,21 +23,20 @@ export function useGuests() {
     async function load() {
       try {
         const supabase = createClient();
-        const { data: profile } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
-        const uid = profile?.id;
+        const uid = await getCurrentUserId(supabase);
         if (!uid) { setLoading(false); return; }
         setUserId(uid);
 
         const { data, error } = await supabase.from("guests").select("*").eq("user_id", uid).order("created_at");
         if (error) console.error("useGuests load error:", error);
         if (data) {
-          setGuests(data.map((g: any) => ({
+          setGuests((data as GuestRow[]).map((g) => ({
             id: g.id,
             name: g.name,
             side: g.side,
-            rel: g.relationship,
-            att: g.attendance,
-            meal: g.meal,
+            rel: g.relationship || "",
+            att: g.attendance || "undecided",
+            meal: g.meal || false,
             gift: g.gift_amount || 0,
           })));
         }

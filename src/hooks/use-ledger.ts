@@ -1,14 +1,14 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { CategoryType } from "@/types";
+import { getCurrentUserId } from "@/lib/supabase/current-user";
 
 export type LedgerOwner = "groom" | "bride" | "shared";
 export type LedgerType = "income" | "expense" | "transfer";
 
 export interface LedgerEntry {
   id: string;
-  categoryType: CategoryType | null;
+  categoryType: string | null;
   title: string;
   amount: number;
   date: string;
@@ -21,6 +21,21 @@ export interface LedgerEntry {
   isPlanned: boolean;
 }
 
+interface LedgerRow {
+  id: string;
+  category_type: string | null;
+  title: string;
+  amount: number;
+  date: string;
+  memo: string | null;
+  owner: LedgerOwner | null;
+  type: LedgerType | null;
+  is_recurring: boolean | null;
+  recurring_day: number | null;
+  payment_method: string | null;
+  is_planned: boolean | null;
+}
+
 export function useLedger() {
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,8 +45,7 @@ export function useLedger() {
     async function load() {
       try {
         const supabase = createClient();
-        const { data: profile } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
-        const uid = profile?.id;
+        const uid = await getCurrentUserId(supabase);
         if (!uid) { setLoading(false); return; }
         setUserId(uid);
 
@@ -42,9 +56,9 @@ export function useLedger() {
           .order("date", { ascending: false });
         if (error) console.error("useLedger error:", error);
         if (data) {
-          setEntries(data.map((e: any) => ({
+          setEntries((data as LedgerRow[]).map((e) => ({
             id: e.id,
-            categoryType: e.category_type as CategoryType | null,
+            categoryType: e.category_type,
             title: e.title,
             amount: e.amount,
             date: e.date,
@@ -83,21 +97,35 @@ export function useLedger() {
         payment_method: entry.paymentMethod,
         is_planned: entry.isPlanned,
       }).select().single();
-      if (error) console.error("addEntry error:", error);
+      if (error) {
+        setEntries((prev) => prev.filter((e) => e.id !== tempId));
+        console.error("addEntry error:", error);
+        return;
+      }
       if (data) {
         setEntries((prev) => prev.map((e) => e.id === tempId ? { ...e, id: data.id } : e));
       }
-    } catch (e) { console.error("addEntry exception:", e); }
+    } catch (e) {
+      setEntries((prev) => prev.filter((entryItem) => entryItem.id !== tempId));
+      console.error("addEntry exception:", e);
+    }
   }, [userId]);
 
   const deleteEntry = useCallback(async (id: string) => {
+    const previous = entries;
     setEntries((prev) => prev.filter((e) => e.id !== id));
     try {
       const supabase = createClient();
       const { error } = await supabase.from("ledger").delete().eq("id", id);
-      if (error) console.error("deleteEntry error:", error);
-    } catch (e) { console.error("deleteEntry exception:", e); }
-  }, []);
+      if (error) {
+        setEntries(previous);
+        console.error("deleteEntry error:", error);
+      }
+    } catch (e) {
+      setEntries(previous);
+      console.error("deleteEntry exception:", e);
+    }
+  }, [entries]);
 
   return { entries, loading, addEntry, deleteEntry };
 }

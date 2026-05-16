@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { WalletIcon } from "@/components/ui/icons";
+import { createClient } from "@/lib/supabase/client";
 
 interface MenuDrawerProps {
   open: boolean;
@@ -17,6 +17,13 @@ export function MenuDrawer({ open, onClose }: MenuDrawerProps) {
   const handleNav = (path: string) => {
     router.push(path);
     onClose();
+  };
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.replace("/login");
+    router.refresh();
   };
 
   return (
@@ -56,7 +63,7 @@ export function MenuDrawer({ open, onClose }: MenuDrawerProps) {
 
         <div className="px-2 py-3 border-t border-ink-200">
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={handleSignOut}
             className="w-full px-4 py-3 text-left text-[13px] text-red-500 font-medium bg-transparent border-none cursor-pointer rounded-lg hover:bg-red-50"
           >
             로그아웃

@@ -6,6 +6,7 @@ import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { LedgerSubNav } from "@/components/ledger/ledger-sub-nav";
 import { LedgerPlannedModal } from "@/components/modals/ledger-planned-modal";
 import { useLedger, OWNER_COLORS, OWNER_SHORT } from "@/hooks/use-ledger";
+import type { LedgerEntry } from "@/hooks/use-ledger";
 import { daysUntil } from "@/lib/utils";
 
 export default function LedgerPlannedPage() {
@@ -19,7 +20,7 @@ export default function LedgerPlannedPage() {
   const sorted = [...planned].sort((a, b) => a.date.localeCompare(b.date));
 
   // 타임라인 분류
-  const groupByWindow = (e: any) => {
+  const groupByWindow = (e: LedgerEntry) => {
     const d = daysUntil(e.date);
     if (d <= 7) return "1주 이내";
     if (d <= 14) return "2주 이내";

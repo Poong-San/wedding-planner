@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentUserId } from "@/lib/supabase/current-user";
 import type { Budget } from "@/types";
 
 export function useBudget() {
@@ -11,8 +12,7 @@ export function useBudget() {
     async function load() {
       try {
         const supabase = createClient();
-        const { data: profile } = await supabase.from("profiles").select("id").limit(1).maybeSingle();
-        const uid = profile?.id;
+        const uid = await getCurrentUserId(supabase);
         if (!uid) { setLoading(false); return; }
 
         const { data, error } = await supabase.from("budgets").select("*").eq("user_id", uid).maybeSingle();

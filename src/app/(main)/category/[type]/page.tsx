@@ -9,7 +9,7 @@ import { CategoryInfo } from "@/components/category/category-info";
 import { FieldList } from "@/components/category/field-list";
 import { FieldInputModal } from "@/components/category/field-input-modal";
 import { CategoryEditModal } from "@/components/modals/category-edit-modal";
-import { PlusIcon, PinIcon } from "@/components/ui/icons";
+import { PinIcon } from "@/components/ui/icons";
 import { GuestStats } from "@/components/guests/guest-stats";
 import { SideSummary } from "@/components/guests/side-summary";
 import { GuestTabs } from "@/components/guests/guest-tabs";
