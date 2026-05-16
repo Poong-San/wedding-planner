@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { ModalShell } from "./modal-shell";
-import { CATEGORY_LABELS } from "@/lib/constants";
 import { getOwnerDisplayLabels } from "@/lib/couple-labels";
+import { LedgerCategoryPicker } from "@/components/ledger/ledger-category-picker";
+import { resolveLedgerCategory } from "@/lib/ledger-categories";
 import { useCouple } from "@/hooks/use-couple";
-import type { CategoryType } from "@/types";
 import type { LedgerEntry, LedgerOwner, LedgerType } from "@/hooks/use-ledger";
 
 interface LedgerAddModalProps {
@@ -14,17 +14,6 @@ interface LedgerAddModalProps {
   defaultType?: LedgerType;
 }
 
-const QUICK_CATEGORIES = [
-  { key: "food", label: "식비", icon: "🍽️" },
-  { key: "cafe", label: "카페", icon: "☕" },
-  { key: "shopping", label: "쇼핑", icon: "🛍️" },
-  { key: "home", label: "주거", icon: "🏠" },
-  { key: "transport", label: "교통", icon: "🚗" },
-  { key: "medical", label: "의료", icon: "🏥" },
-  { key: "travel", label: "여행", icon: "✈️" },
-  { key: "ceremony", label: "경조사", icon: "🎁" },
-];
-
 export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: LedgerAddModalProps) {
   const { couple } = useCouple();
   const today = new Date().toISOString().slice(0, 10);
@@ -32,6 +21,7 @@ export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: Led
   const [amount, setAmount] = useState("");
   const [owner, setOwner] = useState<LedgerOwner>("shared");
   const [categoryType, setCategoryType] = useState<string>("");
+  const [customCategory, setCustomCategory] = useState("");
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(today);
   const [memo, setMemo] = useState("");
@@ -45,7 +35,7 @@ export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: Led
       title: title.trim(),
       amount: Number(amount),
       date,
-      categoryType: (categoryType as CategoryType) || null,
+      categoryType: resolveLedgerCategory(categoryType, customCategory),
       memo,
       owner,
       type,
@@ -114,45 +104,14 @@ export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: Led
           </div>
         </div>
 
-        {/* 카테고리 그리드 */}
-        <div>
-          <div className="text-[11px] text-ink-500 font-medium mb-2">카테고리</div>
-          <div className="grid grid-cols-4 gap-1.5">
-            {QUICK_CATEGORIES.map((c) => (
-              <button
-                key={c.key}
-                onClick={() => setCategoryType(c.key)}
-                className={`aspect-square flex flex-col items-center justify-center gap-1 rounded-lg border cursor-pointer font-sans ${
-                  categoryType === c.key ? "bg-green-50 border-green-500" : "bg-white border-ink-200"
-                }`}
-              >
-                <span className="text-[18px]">{c.icon}</span>
-                <span className="text-[10px] text-ink-600">{c.label}</span>
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => setShowMoreCategories(!showMoreCategories)}
-            className="w-full mt-1.5 py-2 border border-dashed border-ink-300 rounded-lg text-[11px] text-ink-500 cursor-pointer bg-white font-sans"
-          >
-            + 더보기 (결혼 카테고리)
-          </button>
-          {showMoreCategories && (
-            <div className="grid grid-cols-2 gap-1.5 mt-2">
-              {Object.entries(CATEGORY_LABELS).slice(0, 10).map(([k, v]) => (
-                <button
-                  key={k}
-                  onClick={() => setCategoryType(k)}
-                  className={`py-2 rounded-lg text-[11px] border cursor-pointer font-sans ${
-                    categoryType === k ? "bg-green-50 border-green-500 text-green-700" : "bg-white border-ink-200 text-ink-600"
-                  }`}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <LedgerCategoryPicker
+          selectedCategory={categoryType}
+          customCategory={customCategory}
+          showMoreCategories={showMoreCategories}
+          onCategoryChange={setCategoryType}
+          onCustomCategoryChange={setCustomCategory}
+          onToggleMore={() => setShowMoreCategories(!showMoreCategories)}
+        />
 
         {/* 상세 정보 */}
         <div className="flex flex-col gap-2">

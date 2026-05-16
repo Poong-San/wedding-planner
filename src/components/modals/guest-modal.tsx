@@ -19,6 +19,7 @@ export function GuestModal({ guest, onClose, onSave, onDelete }: GuestModalProps
   const [name, setName] = useState(guest?.name || "");
   const [side, setSide] = useState<GuestSide>(guest?.side || "groom");
   const [rel, setRel] = useState(guest?.rel || "친구");
+  const [customRel, setCustomRel] = useState("");
   const [att, setAtt] = useState<AttendanceStatus>(guest?.att || "undecided");
   const [meal, setMeal] = useState(guest?.meal || false);
   const [gift, setGift] = useState(String(guest?.gift || 0));
@@ -26,7 +27,8 @@ export function GuestModal({ guest, onClose, onSave, onDelete }: GuestModalProps
 
   const handleSubmit = () => {
     if (!name.trim()) return;
-    onSave?.({ name, side, rel, att, meal, gift: Number(gift) || 0 });
+    const relationship = rel === "custom" ? customRel.trim() : rel;
+    onSave?.({ name, side, rel: relationship || "기타", att, meal, gift: Number(gift) || 0 });
     onClose();
   };
 
@@ -50,9 +52,17 @@ export function GuestModal({ guest, onClose, onSave, onDelete }: GuestModalProps
         <Field label="관계">
           <select value={rel} onChange={(e) => setRel(e.target.value)}
             className="w-full px-3 py-2.5 border border-ink-200 rounded-lg text-[13px] font-sans bg-white">
-            {["가족", "친구", "직장", "지인", "기타"].map((r) => <option key={r}>{r}</option>)}
+            {["가족", "친구", "직장", "지인"].map((r) => <option key={r}>{r}</option>)}
+            <option value="custom">기타 직접 입력</option>
           </select>
         </Field>
+        {rel === "custom" && (
+          <Field label="기타 관계">
+            <input value={customRel} onChange={(e) => setCustomRel(e.target.value)}
+              placeholder="관계를 직접 입력하세요"
+              className="w-full px-3 py-2.5 border border-ink-200 rounded-lg text-[13px] font-sans" />
+          </Field>
+        )}
         <Field label="참석 여부">
           <div className="flex gap-1.5">
             {([["attending", "참석"], ["undecided", "미정"], ["not_attending", "불참"]] as const).map(([k, l]) => (

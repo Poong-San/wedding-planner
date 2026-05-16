@@ -80,11 +80,23 @@ function renderInput(
         className={inputClass} />;
     case "select":
       return (
-        <select value={value} onChange={(e) => onChange(e.target.value)}
-          className={`${inputClass} bg-white`}>
-          <option value="">선택하세요</option>
-          {(options || []).map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-        </select>
+        <div className="flex flex-col gap-2">
+          <select value={(options || []).includes(value) || value === "" ? value : "__custom__"}
+            onChange={(e) => onChange(e.target.value === "__custom__" ? "" : e.target.value)}
+            className={`${inputClass} bg-white`}>
+            <option value="">선택하세요</option>
+            {(options || []).map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            <option value="__custom__">기타 직접 입력</option>
+          </select>
+          {value !== "" && !(options || []).includes(value) && (
+            <input type="text" value={value} onChange={(e) => onChange(e.target.value)}
+              placeholder="직접 입력하세요" className={inputClass} />
+          )}
+          {value === "" && (
+            <input type="text" value={value} onChange={(e) => onChange(e.target.value)}
+              placeholder="기타를 선택하면 직접 입력할 수 있어요" className={inputClass} />
+          )}
+        </div>
       );
     case "textarea":
       return <textarea value={value} onChange={(e) => onChange(e.target.value)}

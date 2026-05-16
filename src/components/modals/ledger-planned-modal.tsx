@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { ModalShell } from "./modal-shell";
 import { Field } from "@/components/ui/field";
+import { LedgerCategoryPicker } from "@/components/ledger/ledger-category-picker";
 import { getOwnerShortLabels } from "@/lib/couple-labels";
+import { resolveLedgerCategory } from "@/lib/ledger-categories";
 import { useCouple } from "@/hooks/use-couple";
 import type { LedgerEntry, LedgerOwner } from "@/hooks/use-ledger";
 
@@ -18,7 +20,10 @@ export function LedgerPlannedModal({ onSave, onClose }: Props) {
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
   const [owner, setOwner] = useState<LedgerOwner>("shared");
+  const [categoryType, setCategoryType] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
   const [memo, setMemo] = useState("");
+  const [showMoreCategories, setShowMoreCategories] = useState(false);
   const ownerLabels = getOwnerShortLabels(couple);
 
   const handleSave = () => {
@@ -27,7 +32,7 @@ export function LedgerPlannedModal({ onSave, onClose }: Props) {
       title: title.trim(),
       amount: Number(amount),
       date,
-      categoryType: null,
+      categoryType: resolveLedgerCategory(categoryType, customCategory),
       memo,
       owner,
       type: "expense",
@@ -56,6 +61,14 @@ export function LedgerPlannedModal({ onSave, onClose }: Props) {
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
             className="w-full px-3 py-2.5 border border-ink-200 rounded-lg text-[13px] font-sans" />
         </Field>
+        <LedgerCategoryPicker
+          selectedCategory={categoryType}
+          customCategory={customCategory}
+          showMoreCategories={showMoreCategories}
+          onCategoryChange={setCategoryType}
+          onCustomCategoryChange={setCustomCategory}
+          onToggleMore={() => setShowMoreCategories(!showMoreCategories)}
+        />
         <Field label="소유">
           <div className="grid grid-cols-3 gap-1.5">
             {(["groom", "bride", "shared"] as LedgerOwner[]).map((o) => {
