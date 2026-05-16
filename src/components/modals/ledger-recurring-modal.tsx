@@ -10,7 +10,7 @@ import { useCouple } from "@/hooks/use-couple";
 import type { LedgerEntry, LedgerOwner, LedgerType } from "@/hooks/use-ledger";
 
 interface Props {
-  onSave: (entry: Omit<LedgerEntry, "id">) => void;
+  onSave: (entry: Omit<LedgerEntry, "id">) => void | Promise<boolean>;
   onClose: () => void;
 }
 
@@ -25,25 +25,43 @@ export function LedgerRecurringModal({ onSave, onClose }: Props) {
   const [customCategory, setCustomCategory] = useState("");
   const [memo, setMemo] = useState("");
   const [showMoreCategories, setShowMoreCategories] = useState(false);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const ownerLabels = getOwnerShortLabels(couple);
 
-  const handleSave = () => {
-    if (!title.trim() || !amount) return;
+  const handleSave = async () => {
+    setError("");
+    if (!amount || Number(amount) <= 0) {
+      setError("금액을 입력해 주세요.");
+      return;
+    }
+    const recurringDay = Number(day);
+    if (!recurringDay || recurringDay < 1 || recurringDay > 31) {
+      setError("결제일은 1일부터 31일 사이로 입력해 주세요.");
+      return;
+    }
     const today = new Date();
     const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    onSave({
-      title: title.trim(),
+    const category = resolveLedgerCategory(categoryType, customCategory);
+    setSaving(true);
+    const result = await onSave({
+      title: title.trim() || category || (type === "income" ? "고정 수입" : "고정 지출"),
       amount: Number(amount),
       date: dateStr,
-      categoryType: resolveLedgerCategory(categoryType, customCategory),
+      categoryType: category,
       memo,
       owner,
       type,
       isRecurring: true,
-      recurringDay: Number(day),
+      recurringDay,
       paymentMethod: "",
       isPlanned: false,
     });
+    setSaving(false);
+    if (result === false) {
+      setError("저장에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
     onClose();
   };
 
@@ -106,7 +124,10 @@ export function LedgerRecurringModal({ onSave, onClose }: Props) {
             placeholder="선택 사항"
             className="w-full px-3 py-2.5 border border-ink-200 rounded-lg text-[13px] font-sans" />
         </Field>
-        <button className="btn-primary mt-1.5" onClick={handleSave}>저장</button>
+        {error && <div className="text-[12px] text-red-500 text-center">{error}</div>}
+        <button className="btn-primary mt-1.5 disabled:opacity-60" onClick={handleSave} disabled={saving}>
+          {saving ? "저장 중..." : "저장"}
+        </button>
       </div>
     </ModalShell>
   );

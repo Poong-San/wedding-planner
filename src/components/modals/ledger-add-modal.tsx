@@ -9,7 +9,7 @@ import { useCouple } from "@/hooks/use-couple";
 import type { LedgerEntry, LedgerOwner, LedgerType } from "@/hooks/use-ledger";
 
 interface LedgerAddModalProps {
-  onSave: (entry: Omit<LedgerEntry, "id">) => void;
+  onSave: (entry: Omit<LedgerEntry, "id">) => void | Promise<boolean>;
   onClose: () => void;
   defaultType?: LedgerType;
 }
@@ -27,15 +27,24 @@ export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: Led
   const [memo, setMemo] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [showMoreCategories, setShowMoreCategories] = useState(false);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const ownerLabels = getOwnerDisplayLabels(couple);
 
-  const handleSave = () => {
-    if (!amount || !title.trim()) return;
-    onSave({
-      title: title.trim(),
+  const handleSave = async () => {
+    setError("");
+    if (!amount || Number(amount) <= 0) {
+      setError("금액을 입력해 주세요.");
+      return;
+    }
+    const category = resolveLedgerCategory(categoryType, customCategory);
+    const fallbackTitle = type === "income" ? "수입" : type === "transfer" ? "이체" : "지출";
+    setSaving(true);
+    const result = await onSave({
+      title: title.trim() || category || fallbackTitle,
       amount: Number(amount),
       date,
-      categoryType: resolveLedgerCategory(categoryType, customCategory),
+      categoryType: category,
       memo,
       owner,
       type,
@@ -44,6 +53,11 @@ export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: Led
       recurringDay: null,
       isPlanned: false,
     });
+    setSaving(false);
+    if (result === false) {
+      setError("저장에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
     onClose();
   };
 
@@ -153,8 +167,10 @@ export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: Led
           </div>
         </div>
 
-        <button className="btn-primary mt-2" onClick={handleSave}>
-          저장
+        {error && <div className="text-[12px] text-red-500 text-center">{error}</div>}
+
+        <button className="btn-primary mt-2 disabled:opacity-60" onClick={handleSave} disabled={saving}>
+          {saving ? "저장 중..." : "저장"}
         </button>
       </div>
     </ModalShell>

@@ -40,13 +40,18 @@ export function useLedger() {
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     async function load() {
       try {
         const supabase = createClient();
         const uid = await getSharedDataProfileId(supabase);
-        if (!uid) { setLoading(false); return; }
+        if (!uid) {
+          setErrorMessage("로그인 정보를 확인하지 못했어요.");
+          setLoading(false);
+          return;
+        }
         setUserId(uid);
 
         const { data, error } = await supabase
@@ -54,7 +59,10 @@ export function useLedger() {
           .select("*")
           .eq("user_id", uid)
           .order("date", { ascending: false });
-        if (error) console.error("useLedger error:", error);
+        if (error) {
+          setErrorMessage("가계부 데이터를 불러오지 못했어요.");
+          console.error("useLedger error:", error);
+        }
         if (data) {
           setEntries((data as LedgerRow[]).map((e) => ({
             id: e.id,
@@ -77,14 +85,21 @@ export function useLedger() {
     load();
   }, []);
 
-  const addEntry = useCallback(async (entry: Omit<LedgerEntry, "id">) => {
-    if (!userId) return;
+  const addEntry = useCallback(async (entry: Omit<LedgerEntry, "id">): Promise<boolean> => {
+    setErrorMessage("");
+    const supabase = createClient();
+    const targetUserId = userId || await getSharedDataProfileId(supabase);
+    if (!targetUserId) {
+      setErrorMessage("로그인 정보를 확인하지 못했어요. 다시 로그인해 주세요.");
+      return false;
+    }
+    if (!userId) setUserId(targetUserId);
+
     const tempId = crypto.randomUUID();
     setEntries((prev) => [{ ...entry, id: tempId }, ...prev]);
     try {
-      const supabase = createClient();
       const { data, error } = await supabase.from("ledger").insert({
-        user_id: userId,
+        user_id: targetUserId,
         category_type: entry.categoryType,
         title: entry.title,
         amount: entry.amount,
@@ -99,15 +114,19 @@ export function useLedger() {
       }).select().single();
       if (error) {
         setEntries((prev) => prev.filter((e) => e.id !== tempId));
+        setErrorMessage("가계부 저장에 실패했어요. Supabase 테이블과 RLS 정책을 확인해 주세요.");
         console.error("addEntry error:", error);
-        return;
+        return false;
       }
       if (data) {
         setEntries((prev) => prev.map((e) => e.id === tempId ? { ...e, id: data.id } : e));
       }
+      return true;
     } catch (e) {
       setEntries((prev) => prev.filter((entryItem) => entryItem.id !== tempId));
+      setErrorMessage("가계부 저장 중 오류가 발생했어요.");
       console.error("addEntry exception:", e);
+      return false;
     }
   }, [userId]);
 
@@ -119,15 +138,17 @@ export function useLedger() {
       const { error } = await supabase.from("ledger").delete().eq("id", id);
       if (error) {
         setEntries(previous);
+        setErrorMessage("가계부 삭제에 실패했어요.");
         console.error("deleteEntry error:", error);
       }
     } catch (e) {
       setEntries(previous);
+      setErrorMessage("가계부 삭제 중 오류가 발생했어요.");
       console.error("deleteEntry exception:", e);
     }
   }, [entries]);
 
-  return { entries, loading, addEntry, deleteEntry };
+  return { entries, loading, errorMessage, addEntry, deleteEntry };
 }
 
 export const OWNER_COLORS: Record<LedgerOwner, { text: string; bg: string; border: string; dot: string }> = {
