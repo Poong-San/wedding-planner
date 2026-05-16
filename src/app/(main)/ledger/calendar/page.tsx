@@ -5,11 +5,15 @@ import { PlusIcon } from "@/components/ui/icons";
 import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { LedgerSubNav } from "@/components/ledger/ledger-sub-nav";
 import { LedgerAddModal } from "@/components/modals/ledger-add-modal";
-import { useLedger, OWNER_COLORS, OWNER_SHORT } from "@/hooks/use-ledger";
+import { useLedger, OWNER_COLORS } from "@/hooks/use-ledger";
+import { useCouple } from "@/hooks/use-couple";
+import { getOwnerShortLabels } from "@/lib/couple-labels";
 
 export default function LedgerCalendarPage() {
   const { entries, addEntry } = useLedger();
+  const { couple } = useCouple();
   const [showAdd, setShowAdd] = useState(false);
+  const ownerLabels = getOwnerShortLabels(couple);
   const now = new Date();
   const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() + 1 });
   const [selectedDate, setSelectedDate] = useState(now.toISOString().slice(0, 10));
@@ -129,7 +133,7 @@ export default function LedgerCalendarPage() {
                     <span className={`w-1 h-8 rounded-full ${c.dot}`} />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-semibold truncate">{e.title}</div>
-                      <div className="text-[10px] text-ink-400">{OWNER_SHORT[e.owner]}</div>
+                      <div className="text-[10px] text-ink-400">{ownerLabels[e.owner]}</div>
                     </div>
                     <div className={`text-[13px] font-bold ${e.type === "income" ? "text-green-600" : "text-ink-700"}`}>
                       {e.type === "income" ? "+" : "-"}{e.amount.toLocaleString()}

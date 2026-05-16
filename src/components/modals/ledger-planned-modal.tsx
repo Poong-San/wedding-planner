@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { ModalShell } from "./modal-shell";
 import { Field } from "@/components/ui/field";
+import { getOwnerShortLabels } from "@/lib/couple-labels";
+import { useCouple } from "@/hooks/use-couple";
 import type { LedgerEntry, LedgerOwner } from "@/hooks/use-ledger";
 
 interface Props {
@@ -11,11 +13,13 @@ interface Props {
 }
 
 export function LedgerPlannedModal({ onSave, onClose }: Props) {
+  const { couple } = useCouple();
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
   const [owner, setOwner] = useState<LedgerOwner>("shared");
   const [memo, setMemo] = useState("");
+  const ownerLabels = getOwnerShortLabels(couple);
 
   const handleSave = () => {
     if (!title.trim() || !amount || !date) return;
@@ -65,7 +69,7 @@ export function LedgerPlannedModal({ onSave, onClose }: Props) {
                   className={`py-2 rounded-lg text-[12px] font-medium border cursor-pointer font-sans ${
                     owner === o ? colors[o] : "bg-white text-ink-600 border-ink-200"
                   }`}>
-                  {o === "groom" ? "신랑" : o === "bride" ? "신부" : "공동"}
+                  {ownerLabels[o]}
                 </button>
               );
             })}

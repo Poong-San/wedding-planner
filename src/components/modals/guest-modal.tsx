@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { ModalShell } from "./modal-shell";
 import { Field } from "@/components/ui/field";
+import { getGuestSideLabels } from "@/lib/couple-labels";
+import { useCouple } from "@/hooks/use-couple";
 import type { Guest, GuestSide, AttendanceStatus } from "@/types";
 
 interface GuestModalProps {
@@ -13,12 +15,14 @@ interface GuestModalProps {
 }
 
 export function GuestModal({ guest, onClose, onSave, onDelete }: GuestModalProps) {
+  const { couple } = useCouple();
   const [name, setName] = useState(guest?.name || "");
   const [side, setSide] = useState<GuestSide>(guest?.side || "groom");
   const [rel, setRel] = useState(guest?.rel || "친구");
   const [att, setAtt] = useState<AttendanceStatus>(guest?.att || "undecided");
   const [meal, setMeal] = useState(guest?.meal || false);
   const [gift, setGift] = useState(String(guest?.gift || 0));
+  const sideLabels = getGuestSideLabels(couple);
 
   const handleSubmit = () => {
     if (!name.trim()) return;
@@ -35,7 +39,7 @@ export function GuestModal({ guest, onClose, onSave, onDelete }: GuestModalProps
         </Field>
         <Field label="소속">
           <div className="flex gap-1.5">
-            {([["groom", "신랑측"], ["bride", "신부측"]] as const).map(([k, l]) => (
+            {([["groom", sideLabels.groom], ["bride", sideLabels.bride]] as const).map(([k, l]) => (
               <button key={k} onClick={() => setSide(k)}
                 className={`flex-1 py-2.5 rounded-lg font-sans text-[13px] border cursor-pointer ${
                   side === k ? "bg-green-500 text-white border-green-500" : "bg-white text-ink-700 border-ink-200"

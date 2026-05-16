@@ -5,7 +5,9 @@ import { PlusIcon } from "@/components/ui/icons";
 import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { LedgerSubNav } from "@/components/ledger/ledger-sub-nav";
 import { LedgerAddModal } from "@/components/modals/ledger-add-modal";
-import { useLedger, OWNER_COLORS, OWNER_SHORT } from "@/hooks/use-ledger";
+import { useLedger, OWNER_COLORS } from "@/hooks/use-ledger";
+import { useCouple } from "@/hooks/use-couple";
+import { getOwnerShortLabels } from "@/lib/couple-labels";
 import type { LedgerOwner } from "@/hooks/use-ledger";
 
 type OwnerFilter = "all" | LedgerOwner;
@@ -13,11 +15,13 @@ type TypeFilter = "all" | "income" | "expense";
 
 export default function LedgerTransactionsPage() {
   const { entries, addEntry, deleteEntry } = useLedger();
+  const { couple } = useCouple();
   const [showAdd, setShowAdd] = useState(false);
   const [ownerFilter, setOwnerFilter] = useState<OwnerFilter>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
 
   const now = new Date();
+  const ownerLabels = getOwnerShortLabels(couple);
   const [ym, setYm] = useState(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`);
 
   const monthEntries = entries.filter((e) => e.date.startsWith(ym));
@@ -76,10 +80,10 @@ export default function LedgerTransactionsPage() {
             전체 {monthEntries.length}
           </FilterChip>
           <FilterChip active={ownerFilter === "groom"} color="blue" onClick={() => setOwnerFilter("groom")}>
-            신랑 {counts.groom}
+            {ownerLabels.groom} {counts.groom}
           </FilterChip>
           <FilterChip active={ownerFilter === "bride"} color="rose" onClick={() => setOwnerFilter("bride")}>
-            신부 {counts.bride}
+            {ownerLabels.bride} {counts.bride}
           </FilterChip>
           <FilterChip active={ownerFilter === "shared"} color="green" onClick={() => setOwnerFilter("shared")}>
             공동 {counts.shared}
@@ -122,7 +126,7 @@ export default function LedgerTransactionsPage() {
                           <div className="flex-1 min-w-0">
                             <div className="text-[13px] font-semibold truncate">{e.title}</div>
                             <div className="text-[10px] text-ink-400 mt-0.5">
-                              {e.paymentMethod || e.memo || "-"} · {OWNER_SHORT[e.owner]}
+                              {e.paymentMethod || e.memo || "-"} · {ownerLabels[e.owner]}
                             </div>
                           </div>
                           <div

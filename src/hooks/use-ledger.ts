@@ -130,19 +130,6 @@ export function useLedger() {
   return { entries, loading, addEntry, deleteEntry };
 }
 
-// 유틸리티
-export const OWNER_LABELS: Record<LedgerOwner, string> = {
-  groom: "민준 (신랑)",
-  bride: "지영 (신부)",
-  shared: "공동",
-};
-
-export const OWNER_SHORT: Record<LedgerOwner, string> = {
-  groom: "신랑",
-  bride: "신부",
-  shared: "공동",
-};
-
 export const OWNER_COLORS: Record<LedgerOwner, { text: string; bg: string; border: string; dot: string }> = {
   groom: { text: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200", dot: "bg-blue-500" },
   bride: { text: "text-rose-600", bg: "bg-rose-50", border: "border-rose-200", dot: "bg-rose-500" },

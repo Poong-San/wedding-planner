@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { ModalShell } from "./modal-shell";
 import { CATEGORY_LABELS } from "@/lib/constants";
+import { getOwnerDisplayLabels } from "@/lib/couple-labels";
+import { useCouple } from "@/hooks/use-couple";
 import type { CategoryType } from "@/types";
 import type { LedgerEntry, LedgerOwner, LedgerType } from "@/hooks/use-ledger";
 
@@ -24,6 +26,7 @@ const QUICK_CATEGORIES = [
 ];
 
 export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: LedgerAddModalProps) {
+  const { couple } = useCouple();
   const today = new Date().toISOString().slice(0, 10);
   const [type, setType] = useState<LedgerType>(defaultType);
   const [amount, setAmount] = useState("");
@@ -34,6 +37,7 @@ export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: Led
   const [memo, setMemo] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [showMoreCategories, setShowMoreCategories] = useState(false);
+  const ownerLabels = getOwnerDisplayLabels(couple);
 
   const handleSave = () => {
     if (!amount || !title.trim()) return;
@@ -103,7 +107,7 @@ export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: Led
                     owner === o ? colors[o].active : colors[o].idle
                   }`}
                 >
-                  • {o === "groom" ? "민준 (신랑)" : o === "bride" ? "지영 (신부)" : "공동"}
+                  • {ownerLabels[o]}
                 </button>
               );
             })}

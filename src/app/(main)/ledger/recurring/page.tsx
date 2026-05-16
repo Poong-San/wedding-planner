@@ -5,11 +5,15 @@ import { PlusIcon } from "@/components/ui/icons";
 import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { LedgerSubNav } from "@/components/ledger/ledger-sub-nav";
 import { LedgerRecurringModal } from "@/components/modals/ledger-recurring-modal";
-import { useLedger, OWNER_COLORS, OWNER_SHORT } from "@/hooks/use-ledger";
+import { useLedger, OWNER_COLORS } from "@/hooks/use-ledger";
+import { useCouple } from "@/hooks/use-couple";
+import { getOwnerShortLabels } from "@/lib/couple-labels";
 
 export default function LedgerRecurringPage() {
   const { entries, addEntry, deleteEntry } = useLedger();
+  const { couple } = useCouple();
   const [showAdd, setShowAdd] = useState(false);
+  const ownerLabels = getOwnerShortLabels(couple);
 
   const recurring = entries.filter((e) => e.isRecurring);
   const incomes = recurring.filter((e) => e.type === "income");
@@ -50,10 +54,10 @@ export default function LedgerRecurringPage() {
         </div>
 
         {/* 매달 수입 */}
-        <RecurringSection title="매달 수입" items={incomes} onDelete={deleteEntry} totalColor="text-green-600" />
+        <RecurringSection title="매달 수입" items={incomes} ownerLabels={ownerLabels} onDelete={deleteEntry} totalColor="text-green-600" />
 
         {/* 매달 고정지출 */}
-        <RecurringSection title="매달 고정지출" items={expenses} onDelete={deleteEntry} totalColor="text-rose-500" />
+        <RecurringSection title="매달 고정지출" items={expenses} ownerLabels={ownerLabels} onDelete={deleteEntry} totalColor="text-rose-500" />
       </div>
 
       <button
@@ -68,9 +72,10 @@ export default function LedgerRecurringPage() {
   );
 }
 
-function RecurringSection({ title, items, onDelete, totalColor }: {
+function RecurringSection({ title, items, ownerLabels, onDelete, totalColor }: {
   title: string;
   items: import("@/hooks/use-ledger").LedgerEntry[];
+  ownerLabels: Record<import("@/hooks/use-ledger").LedgerOwner, string>;
   onDelete: (id: string) => void;
   totalColor: string;
 }) {
@@ -94,7 +99,7 @@ function RecurringSection({ title, items, onDelete, totalColor }: {
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-semibold truncate">{e.title}</div>
                 <div className="text-[10px] text-ink-400">
-                  매월 {e.recurringDay || "-"}일 · {OWNER_SHORT[e.owner]}
+                  매월 {e.recurringDay || "-"}일 · {ownerLabels[e.owner]}
                 </div>
               </div>
               <div className={`text-[13px] font-bold ${e.type === "income" ? "text-green-600" : "text-ink-700"}`}>

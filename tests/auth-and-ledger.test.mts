@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { parseAllowedEmails, isEmailAllowed } from "../src/lib/auth/allowed-emails.ts";
+import { getGuestSideLabels, getOwnerDisplayLabels, getOwnerShortLabels } from "../src/lib/couple-labels.ts";
 import { getLedgerExpenseByOwner, getLedgerMonthSummary } from "../src/lib/ledger-utils.ts";
 import type { LedgerEntry } from "../src/hooks/use-ledger.ts";
 
@@ -37,6 +38,27 @@ test("ledger owner totals ignore income and other owners", () => {
   ];
 
   assert.equal(getLedgerExpenseByOwner(entries, "groom"), 100_000);
+});
+
+test("couple labels use saved names and fall back to role names", () => {
+  const named = {
+    bride: "수진",
+    groom: "도윤",
+    weddingDate: "2026-05-17",
+    message: "",
+  };
+
+  assert.deepEqual(getOwnerShortLabels(named), {
+    groom: "도윤",
+    bride: "수진",
+    shared: "공동",
+  });
+  assert.equal(getOwnerDisplayLabels(named).groom, "도윤 (신랑)");
+  assert.equal(getGuestSideLabels(named).bride, "수진측");
+
+  const unnamed = { bride: "", groom: "", weddingDate: "", message: "" };
+  assert.equal(getOwnerDisplayLabels(unnamed).bride, "신부 (신부)");
+  assert.equal(getGuestSideLabels(unnamed).groom, "신랑측");
 });
 
 function entry(overrides: Partial<LedgerEntry>): LedgerEntry {

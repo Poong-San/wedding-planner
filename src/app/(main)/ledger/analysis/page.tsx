@@ -4,6 +4,8 @@ import { useState } from "react";
 import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { LedgerSubNav } from "@/components/ledger/ledger-sub-nav";
 import { useLedger } from "@/hooks/use-ledger";
+import { useCouple } from "@/hooks/use-couple";
+import { getOwnerShortLabels } from "@/lib/couple-labels";
 
 type Period = "week" | "month" | "year";
 
@@ -20,7 +22,9 @@ const CATEGORY_COLORS = [
 
 export default function LedgerAnalysisPage() {
   const { entries } = useLedger();
+  const { couple } = useCouple();
   const [period, setPeriod] = useState<Period>("month");
+  const ownerLabels = getOwnerShortLabels(couple);
 
   const now = new Date();
   const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -156,16 +160,16 @@ export default function LedgerAnalysisPage() {
 
         {/* Owner 비교 */}
         <div className="px-5 py-5">
-          <h3 className="text-[13px] font-bold mb-3">신랑/신부/공동 비교</h3>
+          <h3 className="text-[13px] font-bold mb-3">{ownerLabels.groom}/{ownerLabels.bride}/{ownerLabels.shared} 비교</h3>
           <div className="grid grid-cols-3 gap-2">
             <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-center">
-              <div className="text-[10px] text-ink-500 mb-1">신랑</div>
+              <div className="text-[10px] text-ink-500 mb-1">{ownerLabels.groom}</div>
               <div className="font-serif text-lg font-bold text-blue-600">
                 {Math.round(byOwner.groom / 10000)}<span className="text-[10px] ml-0.5">만</span>
               </div>
             </div>
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-center">
-              <div className="text-[10px] text-ink-500 mb-1">신부</div>
+              <div className="text-[10px] text-ink-500 mb-1">{ownerLabels.bride}</div>
               <div className="font-serif text-lg font-bold text-rose-600">
                 {Math.round(byOwner.bride / 10000)}<span className="text-[10px] ml-0.5">만</span>
               </div>

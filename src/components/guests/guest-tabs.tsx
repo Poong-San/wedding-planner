@@ -1,5 +1,8 @@
 "use client";
 
+import { getGuestSideLabels } from "@/lib/couple-labels";
+import { useCouple } from "@/hooks/use-couple";
+
 interface GuestTabsProps {
   tab: string;
   onTabChange: (tab: string) => void;
@@ -9,10 +12,12 @@ interface GuestTabsProps {
 }
 
 export function GuestTabs({ tab, onTabChange, totalCount, groomCount, brideCount }: GuestTabsProps) {
+  const { couple } = useCouple();
+  const sideLabels = getGuestSideLabels(couple);
   const tabs = [
     { k: "all", l: `전체 (${totalCount})` },
-    { k: "groom", l: `신랑측 (${groomCount})` },
-    { k: "bride", l: `신부측 (${brideCount})` },
+    { k: "groom", l: `${sideLabels.groom} (${groomCount})` },
+    { k: "bride", l: `${sideLabels.bride} (${brideCount})` },
   ];
 
   return (

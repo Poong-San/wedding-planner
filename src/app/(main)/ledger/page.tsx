@@ -5,13 +5,17 @@ import { PlusIcon } from "@/components/ui/icons";
 import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { LedgerSubNav } from "@/components/ledger/ledger-sub-nav";
 import { LedgerAddModal } from "@/components/modals/ledger-add-modal";
-import { useLedger, OWNER_COLORS, OWNER_SHORT } from "@/hooks/use-ledger";
+import { useLedger, OWNER_COLORS } from "@/hooks/use-ledger";
+import { useCouple } from "@/hooks/use-couple";
+import { getOwnerShortLabels } from "@/lib/couple-labels";
 import { getLedgerExpenseByOwner, getLedgerMonthSummary, getMonthKey } from "@/lib/ledger-utils";
 import type { LedgerOwner } from "@/hooks/use-ledger";
 
 export default function LedgerHomePage() {
   const { entries, addEntry } = useLedger();
+  const { couple } = useCouple();
   const [showAdd, setShowAdd] = useState(false);
+  const ownerLabels = getOwnerShortLabels(couple);
 
   // 이번 달 필터
   const now = new Date();
@@ -56,7 +60,7 @@ export default function LedgerHomePage() {
               <div key={owner} className={`rounded-xl p-3 border ${c.border} ${c.bg}`}>
                 <div className="flex items-center gap-1 mb-1.5">
                   <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
-                  <span className="text-[10px] font-medium text-ink-500">{OWNER_SHORT[owner]}</span>
+                  <span className="text-[10px] font-medium text-ink-500">{ownerLabels[owner]}</span>
                 </div>
                 <div className="text-[10px] text-ink-400">지출</div>
                 <div className={`font-serif font-bold ${c.text} mt-0.5`}>
@@ -81,9 +85,9 @@ export default function LedgerHomePage() {
               {sharedExp > 0 && <div className="bg-green-500" style={{ width: `${(sharedExp / totalExp) * 100}%` }} />}
             </div>
             <div className="flex gap-4 mt-2 text-[10px] text-ink-500">
-              <span>신랑 {Math.round((groomExp / totalExp) * 100)}%</span>
-              <span>신부 {Math.round((brideExp / totalExp) * 100)}%</span>
-              <span>공동 {Math.round((sharedExp / totalExp) * 100)}%</span>
+              <span>{ownerLabels.groom} {Math.round((groomExp / totalExp) * 100)}%</span>
+              <span>{ownerLabels.bride} {Math.round((brideExp / totalExp) * 100)}%</span>
+              <span>{ownerLabels.shared} {Math.round((sharedExp / totalExp) * 100)}%</span>
             </div>
           </div>
         )}
@@ -108,7 +112,7 @@ export default function LedgerHomePage() {
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-semibold truncate">{e.title}</div>
                       <div className="text-[11px] text-ink-500 mt-0.5">
-                        {e.date.slice(5).replace("-", ".")} · {OWNER_SHORT[e.owner]}
+                        {e.date.slice(5).replace("-", ".")} · {ownerLabels[e.owner]}
                       </div>
                     </div>
                     <div className="text-[13px] font-bold text-ink-700">

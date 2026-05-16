@@ -5,13 +5,17 @@ import { PlusIcon } from "@/components/ui/icons";
 import { PageHeaderWithMenu } from "@/components/layout/page-header-with-menu";
 import { LedgerSubNav } from "@/components/ledger/ledger-sub-nav";
 import { LedgerPlannedModal } from "@/components/modals/ledger-planned-modal";
-import { useLedger, OWNER_COLORS, OWNER_SHORT } from "@/hooks/use-ledger";
+import { useLedger, OWNER_COLORS } from "@/hooks/use-ledger";
+import { useCouple } from "@/hooks/use-couple";
 import type { LedgerEntry } from "@/hooks/use-ledger";
+import { getOwnerShortLabels } from "@/lib/couple-labels";
 import { daysUntil } from "@/lib/utils";
 
 export default function LedgerPlannedPage() {
   const { entries, addEntry, deleteEntry } = useLedger();
+  const { couple } = useCouple();
   const [showAdd, setShowAdd] = useState(false);
+  const ownerLabels = getOwnerShortLabels(couple);
 
   const planned = entries.filter((e) => e.isPlanned && e.type === "expense");
   const total = planned.reduce((s, e) => s + e.amount, 0);
@@ -77,7 +81,7 @@ export default function LedgerPlannedPage() {
                       <div className="flex-1 min-w-0">
                         <div className="text-[13px] font-semibold truncate">{e.title}</div>
                         <div className="text-[10px] text-ink-400 mt-0.5">
-                          {OWNER_SHORT[e.owner]} {e.memo && `· ${e.memo}`}
+                          {ownerLabels[e.owner]} {e.memo && `· ${e.memo}`}
                         </div>
                       </div>
                       <div className="font-serif text-[15px] font-bold text-green-700">
