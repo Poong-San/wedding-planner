@@ -8,15 +8,16 @@ import { LedgerAddModal } from "@/components/modals/ledger-add-modal";
 import { useLedger, OWNER_COLORS } from "@/hooks/use-ledger";
 import { useCouple } from "@/hooks/use-couple";
 import { getOwnerShortLabels } from "@/lib/couple-labels";
-import type { LedgerOwner } from "@/hooks/use-ledger";
+import type { LedgerEntry, LedgerOwner } from "@/hooks/use-ledger";
 
 type OwnerFilter = "all" | LedgerOwner;
 type TypeFilter = "all" | "income" | "expense";
 
 export default function LedgerTransactionsPage() {
-  const { entries, addEntry, deleteEntry } = useLedger();
+  const { entries, addEntry, updateEntry, deleteEntry } = useLedger();
   const { couple } = useCouple();
   const [showAdd, setShowAdd] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<LedgerEntry | null>(null);
   const [ownerFilter, setOwnerFilter] = useState<OwnerFilter>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
 
@@ -119,7 +120,10 @@ export default function LedgerTransactionsPage() {
                     {dayEntries.map((e, i) => {
                       const c = OWNER_COLORS[e.owner];
                       return (
-                        <div key={e.id} className={`px-3 py-2.5 flex items-center gap-2.5 ${
+                        <button
+                          key={e.id}
+                          onClick={() => setEditingEntry(e)}
+                          className={`w-full px-3 py-2.5 flex items-center gap-2.5 text-left bg-transparent border-none cursor-pointer font-sans ${
                           i < dayEntries.length - 1 ? "border-b border-ink-100" : ""
                         }`}>
                           <span className={`w-1 h-8 rounded-full ${c.dot} flex-shrink-0`} />
@@ -129,13 +133,10 @@ export default function LedgerTransactionsPage() {
                               {e.paymentMethod || e.memo || "-"} · {ownerLabels[e.owner]}
                             </div>
                           </div>
-                          <div
-                            onClick={() => { if (confirm("삭제?")) deleteEntry(e.id); }}
-                            className={`text-[13px] font-bold ${e.type === "income" ? "text-green-600" : "text-ink-700"} cursor-pointer`}
-                          >
+                          <div className={`text-[13px] font-bold ${e.type === "income" ? "text-green-600" : "text-ink-700"}`}>
                             {e.type === "income" ? "+" : "-"}{e.amount.toLocaleString()}
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
@@ -154,6 +155,14 @@ export default function LedgerTransactionsPage() {
       </button>
 
       {showAdd && <LedgerAddModal onSave={addEntry} onClose={() => setShowAdd(false)} />}
+      {editingEntry && (
+        <LedgerAddModal
+          entry={editingEntry}
+          onSave={(updates) => updateEntry(editingEntry.id, updates)}
+          onDelete={deleteEntry}
+          onClose={() => setEditingEntry(null)}
+        />
+      )}
     </>
   );
 }

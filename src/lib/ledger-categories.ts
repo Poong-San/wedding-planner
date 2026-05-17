@@ -1,3 +1,5 @@
+import { CATEGORY_LABELS } from "./constants.ts";
+
 export const QUICK_LEDGER_CATEGORIES = [
   { key: "식비", label: "식비" },
   { key: "카페", label: "카페" },
@@ -12,4 +14,14 @@ export const QUICK_LEDGER_CATEGORIES = [
 export function resolveLedgerCategory(selectedCategory: string, customCategory: string): string | null {
   const category = selectedCategory === "custom" ? customCategory.trim() : selectedCategory.trim();
   return category || null;
+}
+
+export function getLedgerCategorySelection(category: string | null): { selectedCategory: string; customCategory: string } {
+  if (!category) return { selectedCategory: "", customCategory: "" };
+  const knownCategories = new Set([
+    ...QUICK_LEDGER_CATEGORIES.map((item) => item.key),
+    ...Object.values(CATEGORY_LABELS),
+  ]);
+  if (knownCategories.has(category)) return { selectedCategory: category, customCategory: "" };
+  return { selectedCategory: "custom", customCategory: category };
 }

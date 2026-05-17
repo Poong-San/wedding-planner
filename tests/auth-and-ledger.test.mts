@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { parseAllowedEmails, isEmailAllowed } from "../src/lib/auth/allowed-emails.ts";
 import { getGuestSideLabels, getOwnerDisplayLabels, getOwnerShortLabels } from "../src/lib/couple-labels.ts";
-import { resolveLedgerCategory } from "../src/lib/ledger-categories.ts";
+import { getLedgerCategorySelection, resolveLedgerCategory } from "../src/lib/ledger-categories.ts";
 import { getLedgerExpenseByOwner, getLedgerMonthSummary } from "../src/lib/ledger-utils.ts";
 import type { LedgerEntry } from "../src/hooks/use-ledger.ts";
 
@@ -66,6 +66,8 @@ test("ledger category resolver supports quick categories and custom entries", ()
   assert.equal(resolveLedgerCategory("식비", ""), "식비");
   assert.equal(resolveLedgerCategory("custom", "반려동물"), "반려동물");
   assert.equal(resolveLedgerCategory("custom", "   "), null);
+  assert.deepEqual(getLedgerCategorySelection("식비"), { selectedCategory: "식비", customCategory: "" });
+  assert.deepEqual(getLedgerCategorySelection("반려동물"), { selectedCategory: "custom", customCategory: "반려동물" });
 });
 
 function entry(overrides: Partial<LedgerEntry>): LedgerEntry {

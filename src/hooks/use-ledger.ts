@@ -130,6 +130,40 @@ export function useLedger() {
     }
   }, [userId]);
 
+  const updateEntry = useCallback(async (id: string, updates: Omit<LedgerEntry, "id">): Promise<boolean> => {
+    setErrorMessage("");
+    const previous = entries;
+    setEntries((prev) => prev.map((entry) => entry.id === id ? { ...updates, id } : entry));
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from("ledger").update({
+        category_type: updates.categoryType,
+        title: updates.title,
+        amount: updates.amount,
+        date: updates.date,
+        memo: updates.memo,
+        owner: updates.owner,
+        type: updates.type,
+        is_recurring: updates.isRecurring,
+        recurring_day: updates.recurringDay,
+        payment_method: updates.paymentMethod,
+        is_planned: updates.isPlanned,
+      }).eq("id", id);
+      if (error) {
+        setEntries(previous);
+        setErrorMessage("가계부 수정에 실패했어요.");
+        console.error("updateEntry error:", error);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      setEntries(previous);
+      setErrorMessage("가계부 수정 중 오류가 발생했어요.");
+      console.error("updateEntry exception:", e);
+      return false;
+    }
+  }, [entries]);
+
   const deleteEntry = useCallback(async (id: string) => {
     const previous = entries;
     setEntries((prev) => prev.filter((e) => e.id !== id));
@@ -148,7 +182,7 @@ export function useLedger() {
     }
   }, [entries]);
 
-  return { entries, loading, errorMessage, addEntry, deleteEntry };
+  return { entries, loading, errorMessage, addEntry, updateEntry, deleteEntry };
 }
 
 export const OWNER_COLORS: Record<LedgerOwner, { text: string; bg: string; border: string; dot: string }> = {

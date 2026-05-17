@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ModalShell } from "./modal-shell";
 import { getOwnerDisplayLabels } from "@/lib/couple-labels";
 import { LedgerCategoryPicker } from "@/components/ledger/ledger-category-picker";
-import { resolveLedgerCategory } from "@/lib/ledger-categories";
+import { getLedgerCategorySelection, resolveLedgerCategory } from "@/lib/ledger-categories";
 import { useCouple } from "@/hooks/use-couple";
 import type { LedgerEntry, LedgerOwner, LedgerType } from "@/hooks/use-ledger";
 
@@ -12,20 +12,23 @@ interface LedgerAddModalProps {
   onSave: (entry: Omit<LedgerEntry, "id">) => void | Promise<boolean>;
   onClose: () => void;
   defaultType?: LedgerType;
+  entry?: LedgerEntry;
+  onDelete?: (id: string) => void | Promise<void>;
 }
 
-export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: LedgerAddModalProps) {
+export function LedgerAddModal({ onSave, onClose, defaultType = "expense", entry, onDelete }: LedgerAddModalProps) {
   const { couple } = useCouple();
   const today = new Date().toISOString().slice(0, 10);
-  const [type, setType] = useState<LedgerType>(defaultType);
-  const [amount, setAmount] = useState("");
-  const [owner, setOwner] = useState<LedgerOwner>("shared");
-  const [categoryType, setCategoryType] = useState<string>("");
-  const [customCategory, setCustomCategory] = useState("");
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState(today);
-  const [memo, setMemo] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const initialCategory = getLedgerCategorySelection(entry?.categoryType || null);
+  const [type, setType] = useState<LedgerType>(entry?.type || defaultType);
+  const [amount, setAmount] = useState(entry ? String(entry.amount) : "");
+  const [owner, setOwner] = useState<LedgerOwner>(entry?.owner || "shared");
+  const [categoryType, setCategoryType] = useState<string>(initialCategory.selectedCategory);
+  const [customCategory, setCustomCategory] = useState(initialCategory.customCategory);
+  const [title, setTitle] = useState(entry?.title || "");
+  const [date, setDate] = useState(entry?.date || today);
+  const [memo, setMemo] = useState(entry?.memo || "");
+  const [paymentMethod, setPaymentMethod] = useState(entry?.paymentMethod || "");
   const [showMoreCategories, setShowMoreCategories] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -49,9 +52,9 @@ export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: Led
       owner,
       type,
       paymentMethod,
-      isRecurring: false,
-      recurringDay: null,
-      isPlanned: false,
+      isRecurring: entry?.isRecurring || false,
+      recurringDay: entry?.recurringDay || null,
+      isPlanned: entry?.isPlanned || false,
     });
     setSaving(false);
     if (result === false) {
@@ -61,8 +64,15 @@ export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: Led
     onClose();
   };
 
+  const handleDelete = async () => {
+    if (!entry || !onDelete) return;
+    if (!confirm("이 거래를 삭제할까요?")) return;
+    await onDelete(entry.id);
+    onClose();
+  };
+
   return (
-    <ModalShell title="거래 추가" onClose={onClose}>
+    <ModalShell title={entry ? "거래 수정" : "거래 추가"} onClose={onClose}>
       <div className="flex flex-col gap-4">
         {/* 타입 토글 */}
         <div className="grid grid-cols-3 gap-1 p-1 bg-ink-100 rounded-lg">
@@ -169,9 +179,16 @@ export function LedgerAddModal({ onSave, onClose, defaultType = "expense" }: Led
 
         {error && <div className="text-[12px] text-red-500 text-center">{error}</div>}
 
-        <button className="btn-primary mt-2 disabled:opacity-60" onClick={handleSave} disabled={saving}>
-          {saving ? "저장 중..." : "저장"}
-        </button>
+        <div className="flex gap-2 mt-2">
+          {entry && onDelete && (
+            <button className="btn-ghost flex-1 text-red-500" onClick={handleDelete} disabled={saving}>
+              삭제
+            </button>
+          )}
+          <button className="btn-primary flex-1 disabled:opacity-60" onClick={handleSave} disabled={saving}>
+            {saving ? "저장 중..." : "저장"}
+          </button>
+        </div>
       </div>
     </ModalShell>
   );
